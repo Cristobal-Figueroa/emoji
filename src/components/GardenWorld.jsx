@@ -4,13 +4,15 @@ import Character from './Character';
 import './GardenWorld.css';
 
 const GardenWorld = () => {
-  const { user, roomId, players, flowers, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower } = useGame();
+  const { user, roomId, players, flowers, background, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory } = useGame();
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [roomInput, setRoomInput] = useState('');
   const [showFlowerMenu, setShowFlowerMenu] = useState(false);
+  const [showBackgroundMenu, setShowBackgroundMenu] = useState(false);
+  const [showAccessoryMenu, setShowAccessoryMenu] = useState(false);
   const [plantingPosition, setPlantingPosition] = useState(null);
   const worldRef = useRef(null);
 
@@ -28,6 +30,33 @@ const GardenWorld = () => {
     { type: 'cherry', name: '🌸 Cerezo', emojis: ['🌱', '🌿', '🌸', '🌸'] },
     { type: 'lily', name: '🌺 Lirio', emojis: ['🌱', '🌿', '🌺', '🌺'] },
     { type: 'daisy', name: '🌼 Margarita', emojis: ['🌱', '🌿', '🌼', '🌼'] }
+  ];
+
+  const backgrounds = [
+    { id: 'meadow', name: '🌿 Prado', gradient: 'linear-gradient(180deg, #87CEEB 0%, #90EE90 50%, #228B22 100%)' },
+    { id: 'beach', name: '🏖️ Playa', gradient: 'linear-gradient(180deg, #87CEEB 0%, #FFD700 50%, #F4A460 100%)' },
+    { id: 'forest', name: '🌲 Bosque', gradient: 'linear-gradient(180deg, #2E8B57 0%, #228B22 50%, #006400 100%)' },
+    { id: 'mountain', name: '⛰️ Montaña', gradient: 'linear-gradient(180deg, #87CEEB 0%, #A9A9A9 50%, #696969 100%)' },
+    { id: 'sunset', name: '🌅 Atardecer', gradient: 'linear-gradient(180deg, #FF6B6B 0%, #FFD93D 50%, #FF8C00 100%)' },
+    { id: 'night', name: '🌙 Noche', gradient: 'linear-gradient(180deg, #191970 0%, #4B0082 50%, #000000 100%)' }
+  ];
+
+  const accessories = [
+    { id: null, name: 'Sin accesorio', emoji: '' },
+    { id: 'hat', name: '🎩 Sombrero', emoji: '🎩' },
+    { id: 'crown', name: '👑 Corona', emoji: '👑' },
+    { id: 'glasses', name: '🕶️ Gafas', emoji: '🕶️' },
+    { id: 'bow', name: '🎀 Lazo', emoji: '🎀' },
+    { id: 'flower', name: '💐 Flores', emoji: '💐' },
+    { id: 'star', name: '⭐ Estrella', emoji: '⭐' },
+    { id: 'heart', name: '❤️ Corazón', emoji: '❤️' },
+    { id: 'wings', name: '👼 Alas', emoji: '👼' },
+    { id: 'halo', name: '😇 Halo', emoji: '😇' },
+    { id: 'mask', name: '🎭 Máscara', emoji: '🎭' },
+    { id: 'tiara', name: '👸 Tiara', emoji: '👸' },
+    { id: 'balloon', name: '🎈 Globo', emoji: '🎈' },
+    { id: 'umbrella', name: '☂️ Paraguas', emoji: '☂️' },
+    { id: 'magic', name: '🪄 Varita', emoji: '🪄' }
   ];
 
   const getFlowerEmoji = (type, stage) => {
@@ -143,7 +172,12 @@ const GardenWorld = () => {
         onClick={handleWorldClick}
         onContextMenu={handleRightClick}
       >
-        <div className="garden-background">
+        <div 
+          className="garden-background"
+          style={{ 
+            background: backgrounds.find(bg => bg.id === background)?.gradient || backgrounds[0].gradient
+          }}
+        >
           <div className="grass-pattern"></div>
           <div className="decorations">
             <span className="decoration flower1">🌸</span>
@@ -206,6 +240,18 @@ const GardenWorld = () => {
           🌱
         </button>
         <button 
+          className="control-btn background-btn"
+          onClick={() => setShowBackgroundMenu(!showBackgroundMenu)}
+        >
+          🎨
+        </button>
+        <button 
+          className="control-btn accessory-btn"
+          onClick={() => setShowAccessoryMenu(!showAccessoryMenu)}
+        >
+          {accessories.find(a => a.id === myPlayer.accessory)?.emoji || '👗'}
+        </button>
+        <button 
           className="control-btn emoji-btn"
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
         >
@@ -262,6 +308,57 @@ const GardenWorld = () => {
               >
                 <span className="flower-option-emoji">{flower.emojis[3]}</span>
                 <span className="flower-option-name">{flower.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showBackgroundMenu && (
+        <div className="background-menu">
+          <div className="background-menu-header">
+            <h3>🎨 Cambiar Fondo</h3>
+            <button className="close-btn" onClick={() => setShowBackgroundMenu(false)}>✕</button>
+          </div>
+          <div className="background-options">
+            {backgrounds.map(bg => (
+              <button
+                key={bg.id}
+                className={`background-option ${background === bg.id ? 'active' : ''}`}
+                onClick={() => {
+                  changeBackground(bg.id);
+                  setShowBackgroundMenu(false);
+                }}
+              >
+                <div 
+                  className="background-preview"
+                  style={{ background: bg.gradient }}
+                />
+                <span className="background-name">{bg.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showAccessoryMenu && (
+        <div className="accessory-menu">
+          <div className="accessory-menu-header">
+            <h3>� Accesorios</h3>
+            <button className="close-btn" onClick={() => setShowAccessoryMenu(false)}>✕</button>
+          </div>
+          <div className="accessory-options">
+            {accessories.map(acc => (
+              <button
+                key={acc.id || 'none'}
+                className={`accessory-option ${myPlayer.accessory === acc.id ? 'active' : ''}`}
+                onClick={() => {
+                  changeAccessory(acc.id);
+                  setShowAccessoryMenu(false);
+                }}
+              >
+                <span className="accessory-option-emoji">{acc.emoji || '❌'}</span>
+                <span className="accessory-option-name">{acc.name}</span>
               </button>
             ))}
           </div>

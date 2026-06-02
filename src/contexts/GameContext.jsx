@@ -17,13 +17,15 @@ export const GameProvider = ({ children }) => {
   const [roomId, setRoomId] = useState(null);
   const [players, setPlayers] = useState({});
   const [flowers, setFlowers] = useState([]);
+  const [background, setBackground] = useState('meadow');
   const [myPlayer, setMyPlayer] = useState({
     id: null,
     emoji: '😊',
     x: 50,
     y: 50,
     message: '',
-    messageTime: null
+    messageTime: null,
+    accessory: null
   });
   const [loading, setLoading] = useState(true);
 
@@ -83,6 +85,14 @@ export const GameProvider = ({ children }) => {
       }
     });
 
+    const roomRef = ref(database, `rooms/${roomIdToJoin}`);
+    const unsubscribeRoom = onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.background) {
+        setBackground(data.background);
+      }
+    });
+
     // Agregar jugador actual a la sala
     await update(ref(database, `rooms/${roomIdToJoin}/players/${userId}`), {
       emoji: myPlayer.emoji,
@@ -96,6 +106,7 @@ export const GameProvider = ({ children }) => {
     return () => {
       unsubscribePlayers();
       unsubscribeFlowers();
+      unsubscribeRoom();
     };
   };
 
@@ -182,11 +193,31 @@ export const GameProvider = ({ children }) => {
     });
   };
 
+  const changeBackground = async (bg) => {
+    if (!userId || !roomId) return;
+
+    setBackground(bg);
+    await update(ref(database, `rooms/${roomId}`), {
+      background: bg
+    });
+  };
+
+  const changeAccessory = async (accessory) => {
+    if (!userId || !roomId) return;
+
+    setMyPlayer(prev => ({ ...prev, accessory }));
+
+    await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+      accessory
+    });
+  };
+
   const value = {
     user: userId,
     roomId,
     players,
     flowers,
+    background,
     myPlayer,
     loading,
     createRoom,
@@ -195,7 +226,9 @@ export const GameProvider = ({ children }) => {
     sendMessage,
     changeEmoji,
     plantFlower,
-    waterFlower
+    waterFlower,
+    changeBackground,
+    changeAccessory
   };
 
   return (
