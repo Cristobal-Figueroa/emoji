@@ -36,6 +36,16 @@ export const GameProvider = ({ children }) => {
     setUserName(name);
     setMyPlayer(prev => ({ ...prev, id: name }));
     localStorage.setItem('cozyUserName', name);
+
+    // Cargar emoji y accesorio guardados en localStorage como respaldo
+    const savedEmoji = localStorage.getItem(`cozyEmoji_${name}`);
+    const savedAccessory = localStorage.getItem(`cozyAccessory_${name}`);
+    if (savedEmoji) {
+      setMyPlayer(prev => ({ ...prev, emoji: savedEmoji }));
+    }
+    if (savedAccessory) {
+      setMyPlayer(prev => ({ ...prev, accessory: savedAccessory }));
+    }
   };
 
   // Filtrar flores por lugar actual
@@ -105,7 +115,7 @@ export const GameProvider = ({ children }) => {
       const data = snapshot.val();
       if (data) {
         setPlayers(data);
-        // Actualizar emoji y accesorio del jugador local desde la base de datos
+        // Actualizar emoji y accesorio del jugador local desde la base de datos solo si existen
         if (data[userName]) {
           setMyPlayer(prev => ({
             ...prev,
@@ -151,18 +161,36 @@ export const GameProvider = ({ children }) => {
       }
     });
 
-    // Agregar jugador actual a la sala con emoji y accesorio
-    await update(ref(database, `rooms/${roomIdToJoin}/players/${userName}`), {
-      id: userName,
-      emoji: myPlayer.emoji,
-      accessory: myPlayer.accessory,
-      x: myPlayer.x,
-      y: myPlayer.y,
-      message: '',
-      messageTime: null,
-      lastSeen: Date.now(),
-      location: currentLocation
+    // Agregar jugador actual a la sala, pero no sobrescribir emoji y accesorio si ya existen
+    const playerRef = ref(database, `rooms/${roomIdToJoin}/players/${userName}`);
+    const playerSnapshot = await new Promise((resolve) => {
+      onValue(playerRef, (snapshot) => {
+        resolve(snapshot.val());
+      }, { onlyOnce: true });
     });
+
+    if (!playerSnapshot) {
+      // Solo actualizar si el jugador no existe en la sala
+      await update(ref(database, `rooms/${roomIdToJoin}/players/${userName}`), {
+        id: userName,
+        emoji: myPlayer.emoji,
+        accessory: myPlayer.accessory,
+        x: myPlayer.x,
+        y: myPlayer.y,
+        message: '',
+        messageTime: null,
+        lastSeen: Date.now(),
+        location: currentLocation
+      });
+    } else {
+      // Solo actualizar posición y lastSeen si el jugador ya existe
+      await update(ref(database, `rooms/${roomIdToJoin}/players/${userName}`), {
+        x: myPlayer.x,
+        y: myPlayer.y,
+        lastSeen: Date.now(),
+        location: currentLocation
+      });
+    }
 
     return () => {
       unsubscribePlayers();
@@ -219,6 +247,7 @@ export const GameProvider = ({ children }) => {
     if (!userName || !roomId) return;
 
     setMyPlayer(prev => ({ ...prev, emoji }));
+    localStorage.setItem(`cozyEmoji_${userName}`, emoji);
 
     await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       emoji,
@@ -290,6 +319,7 @@ export const GameProvider = ({ children }) => {
     if (!userName || !roomId) return;
 
     setMyPlayer(prev => ({ ...prev, accessory }));
+    localStorage.setItem(`cozyAccessory_${userName}`, accessory);
 
     await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       accessory,
