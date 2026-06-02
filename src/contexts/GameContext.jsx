@@ -36,16 +36,6 @@ export const GameProvider = ({ children }) => {
     setUserName(name);
     setMyPlayer(prev => ({ ...prev, id: name }));
     localStorage.setItem('cozyUserName', name);
-    
-    // Cargar emoji y accesorio guardados para este usuario
-    const savedEmoji = localStorage.getItem(`cozyEmoji_${name}`);
-    const savedAccessory = localStorage.getItem(`cozyAccessory_${name}`);
-    if (savedEmoji) {
-      setMyPlayer(prev => ({ ...prev, emoji: savedEmoji }));
-    }
-    if (savedAccessory) {
-      setMyPlayer(prev => ({ ...prev, accessory: savedAccessory }));
-    }
   };
 
   // Filtrar flores por lugar actual
@@ -229,7 +219,6 @@ export const GameProvider = ({ children }) => {
     if (!userName || !roomId) return;
 
     setMyPlayer(prev => ({ ...prev, emoji }));
-    localStorage.setItem(`cozyEmoji_${userName}`, emoji);
 
     await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       emoji,
@@ -301,7 +290,6 @@ export const GameProvider = ({ children }) => {
     if (!userName || !roomId) return;
 
     setMyPlayer(prev => ({ ...prev, accessory }));
-    localStorage.setItem(`cozyAccessory_${userName}`, accessory);
 
     await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       accessory,
