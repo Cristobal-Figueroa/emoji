@@ -108,13 +108,21 @@ export const GameProvider = ({ children }) => {
     if (!userName) return;
 
     setRoomId(roomIdToJoin);
-    
+
     const playersRef = ref(database, `rooms/${roomIdToJoin}/players`);
-    
+
     const unsubscribePlayers = onValue(playersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setPlayers(data);
+        // Actualizar emoji y accesorio del jugador local desde la base de datos
+        if (data[userName]) {
+          setMyPlayer(prev => ({
+            ...prev,
+            emoji: data[userName].emoji || prev.emoji,
+            accessory: data[userName].accessory || prev.accessory
+          }));
+        }
       } else {
         setPlayers({});
       }
@@ -153,10 +161,11 @@ export const GameProvider = ({ children }) => {
       }
     });
 
-    // Agregar jugador actual a la sala
+    // Agregar jugador actual a la sala con emoji y accesorio
     await update(ref(database, `rooms/${roomIdToJoin}/players/${userName}`), {
       id: userName,
       emoji: myPlayer.emoji,
+      accessory: myPlayer.accessory,
       x: myPlayer.x,
       y: myPlayer.y,
       message: '',

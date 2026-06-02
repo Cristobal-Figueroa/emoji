@@ -17,13 +17,21 @@
 .character-accessory {
   position: absolute;
   top: -10px;
-  left: 16%;
+  left: 23%;
   transform: translateX(0%);
-  font-size: 24px;
+  font-size: 25px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   animation: bounce 2s ease-in-out infinite;
   animation-delay: 0.5s;
   z-index: 2;
+}
+
+@media (max-width: 500px) {
+  .character-accessory {
+    top: -18px;
+    left: 13%;
+    font-size: 26px;
+  }
 }
 
 @keyframes bounce {
