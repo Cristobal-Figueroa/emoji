@@ -290,12 +290,6 @@ const GardenWorld = () => {
           🌱
         </button>
         <button 
-          className="control-btn background-btn"
-          onClick={() => setShowBackgroundMenu(!showBackgroundMenu)}
-        >
-          🎨
-        </button>
-        <button 
           className="control-btn accessory-btn"
           onClick={() => setShowAccessoryMenu(!showAccessoryMenu)}
         >
