@@ -307,7 +307,7 @@
   cursor: pointer;
   transition: transform 0.1s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 200;
+  z-index: 300;
 }
 
 .change-room-btn:hover {
@@ -352,7 +352,7 @@
 .chat-panel-body {
   position: fixed;
   bottom: 100px;
-  left: 50%;
+  left: 47%;
   transform: translateX(-50%);
   display: flex;
   gap: 4px;
