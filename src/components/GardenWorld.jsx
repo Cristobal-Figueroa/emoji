@@ -4,15 +4,36 @@ import Character from './Character';
 import './GardenWorld.css';
 
 const GardenWorld = () => {
-  const { user, roomId, players, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom } = useGame();
+  const { user, roomId, players, flowers, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower } = useGame();
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [roomInput, setRoomInput] = useState('');
+  const [showFlowerMenu, setShowFlowerMenu] = useState(false);
+  const [plantingPosition, setPlantingPosition] = useState(null);
   const worldRef = useRef(null);
 
-  const emojis = ['😊', '🥰', '😎', '🤗', '😇', '🥳', '😸', '🦊', '🐰', '🐻', '🐼', '🦄'];
+  const emojis = [
+    '😊', '🥰', '😎', '🤗', '😇', '🥳', '😸', '🦊', '🐰', '🐻', '🐼', '🦄',
+    '🐶', '🐱', '🐭', '🐹', '🐲', '🐢', '🦉', '🦋', '🌸', '🌺', '🌻', '🌹',
+    '🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🌈', '⭐', '🌙', '☀️', '🎈', '🎀',
+    '🎭', '🎪', '🎨', '🎬', '🎮', '🎯', '🎲', '🎸', '🎹', '🎺', '🎻', '🥁'
+  ];
+
+  const flowerTypes = [
+    { type: 'rose', name: '🌹 Rosa', emojis: ['🌱', '🌿', '🥀', '🌹'] },
+    { type: 'sunflower', name: '🌻 Girasol', emojis: ['🌱', '🌿', '🌼', '🌻'] },
+    { type: 'tulip', name: '🌷 Tulipán', emojis: ['🌱', '🌿', '🌷', '🌷'] },
+    { type: 'cherry', name: '🌸 Cerezo', emojis: ['🌱', '🌿', '🌸', '🌸'] },
+    { type: 'lily', name: '🌺 Lirio', emojis: ['🌱', '🌿', '🌺', '🌺'] },
+    { type: 'daisy', name: '🌼 Margarita', emojis: ['🌱', '🌿', '🌼', '🌼'] }
+  ];
+
+  const getFlowerEmoji = (type, stage) => {
+    const flower = flowerTypes.find(f => f.type === type);
+    return flower ? flower.emojis[stage] : '🌱';
+  };
 
   const handleWorldClick = (e) => {
     if (!worldRef.current) return;
@@ -21,7 +42,40 @@ const GardenWorld = () => {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
-    updatePosition(Math.max(5, Math.min(95, x)), Math.max(5, Math.min(95, y)));
+    // Si el click es en una flor, regarla
+    const clickedFlower = flowers.find(flower => {
+      const flowerX = flower.x;
+      const flowerY = flower.y;
+      const distance = Math.sqrt(Math.pow(x - flowerX, 2) + Math.pow(y - flowerY, 2));
+      return distance < 8;
+    });
+
+    if (clickedFlower) {
+      console.log('Regando flor:', clickedFlower.id);
+      waterFlower(clickedFlower.id);
+    } else {
+      updatePosition(Math.max(5, Math.min(95, x)), Math.max(5, Math.min(95, y)));
+    }
+  };
+
+  const handleRightClick = (e) => {
+    e.preventDefault();
+    if (!worldRef.current) return;
+    
+    const rect = worldRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    setPlantingPosition({ x, y });
+    setShowFlowerMenu(true);
+  };
+
+  const handlePlantFlower = (type) => {
+    if (plantingPosition) {
+      plantFlower(plantingPosition.x, plantingPosition.y, type);
+      setShowFlowerMenu(false);
+      setPlantingPosition(null);
+    }
   };
 
   const handleSendChat = () => {
@@ -45,6 +99,8 @@ const GardenWorld = () => {
   };
 
   const otherPlayers = Object.entries(players).filter(([id]) => id !== user?.uid);
+
+  console.log('Flores en el estado:', flowers);
 
   return (
     <div className="garden-world">
@@ -85,6 +141,7 @@ const GardenWorld = () => {
         ref={worldRef}
         className="world-container"
         onClick={handleWorldClick}
+        onContextMenu={handleRightClick}
       >
         <div className="garden-background">
           <div className="grass-pattern"></div>
@@ -98,6 +155,30 @@ const GardenWorld = () => {
             <span className="decoration bush2">🍀</span>
           </div>
         </div>
+
+        {flowers.map(flower => (
+          <div 
+            key={flower.id}
+            className="garden-flower"
+            style={{ 
+              left: `${flower.x}%`, 
+              top: `${flower.y}%` 
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('Click en flor:', flower.id);
+              waterFlower(flower.id);
+            }}
+          >
+            <span className="flower-emoji">{getFlowerEmoji(flower.type, flower.stage)}</span>
+            <div className="flower-water-bar">
+              <div 
+                className="flower-water-fill" 
+                style={{ width: `${flower.water}%` }}
+              />
+            </div>
+          </div>
+        ))}
 
         {user && myPlayer.id && (
           <Character player={myPlayer} isLocal={true} />
@@ -114,6 +195,15 @@ const GardenWorld = () => {
           onClick={() => setShowChat(!showChat)}
         >
           💬
+        </button>
+        <button 
+          className="control-btn plant-btn"
+          onClick={() => {
+            setPlantingPosition({ x: myPlayer.x, y: myPlayer.y + 5 });
+            setShowFlowerMenu(true);
+          }}
+        >
+          🌱
         </button>
         <button 
           className="control-btn emoji-btn"
@@ -154,6 +244,27 @@ const GardenWorld = () => {
               {emoji}
             </button>
           ))}
+        </div>
+      )}
+
+      {showFlowerMenu && (
+        <div className="flower-menu">
+          <div className="flower-menu-header">
+            <h3>🌱 Plantar Flor</h3>
+            <button className="close-btn" onClick={() => setShowFlowerMenu(false)}>✕</button>
+          </div>
+          <div className="flower-options">
+            {flowerTypes.map(flower => (
+              <button
+                key={flower.type}
+                className="flower-option"
+                onClick={() => handlePlantFlower(flower.type)}
+              >
+                <span className="flower-option-emoji">{flower.emojis[3]}</span>
+                <span className="flower-option-name">{flower.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

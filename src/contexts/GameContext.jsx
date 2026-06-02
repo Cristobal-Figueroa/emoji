@@ -16,6 +16,7 @@ export const GameProvider = ({ children }) => {
   const [userId, setUserId] = useState(null);
   const [roomId, setRoomId] = useState(null);
   const [players, setPlayers] = useState({});
+  const [flowers, setFlowers] = useState([]);
   const [myPlayer, setMyPlayer] = useState({
     id: null,
     emoji: '😊',
@@ -59,12 +60,26 @@ export const GameProvider = ({ children }) => {
     
     const playersRef = ref(database, `rooms/${roomIdToJoin}/players`);
     
-    const unsubscribe = onValue(playersRef, (snapshot) => {
+    const unsubscribePlayers = onValue(playersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setPlayers(data);
       } else {
         setPlayers({});
+      }
+    });
+
+    const flowersRef = ref(database, `rooms/${roomIdToJoin}/flowers`);
+    const unsubscribeFlowers = onValue(flowersRef, (snapshot) => {
+      const data = snapshot.val();
+      console.log('Flores cargadas de Firebase:', data);
+      if (data) {
+        const flowersArray = Object.entries(data).map(([id, flower]) => ({ id, ...flower }));
+        console.log('Array de flores:', flowersArray);
+        setFlowers(flowersArray);
+      } else {
+        console.log('No hay flores en la sala');
+        setFlowers([]);
       }
     });
 
@@ -78,7 +93,10 @@ export const GameProvider = ({ children }) => {
       lastSeen: Date.now()
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribePlayers();
+      unsubscribeFlowers();
+    };
   };
 
   const updatePosition = async (x, y) => {
@@ -124,17 +142,60 @@ export const GameProvider = ({ children }) => {
     });
   };
 
+  const plantFlower = async (x, y, type) => {
+    if (!userId || !roomId) return;
+
+    const newFlower = {
+      type,
+      x,
+      y,
+      stage: 0, // 0: semilla, 1: brote, 2: flor pequeña, 3: flor madura
+      water: 50,
+      plantedAt: Date.now(),
+      lastWatered: null,
+      plantedBy: userId
+    };
+
+    const flowerId = Date.now().toString();
+    console.log('Plantando flor:', flowerId, newFlower);
+    await update(ref(database, `rooms/${roomId}/flowers/${flowerId}`), newFlower);
+  };
+
+  const waterFlower = async (flowerId) => {
+    if (!userId || !roomId) return;
+
+    const flower = flowers.find(f => f.id === flowerId);
+    if (!flower) return;
+
+    const newWater = Math.min(100, flower.water + 25);
+    let newStage = flower.stage;
+
+    // La flor crece si tiene suficiente agua
+    if (newWater >= 80 && flower.stage < 3) {
+      newStage = flower.stage + 1;
+    }
+
+    await update(ref(database, `rooms/${roomId}/flowers/${flowerId}`), {
+      water: newWater,
+      stage: newStage,
+      lastWatered: Date.now()
+    });
+  };
+
   const value = {
     user: userId,
     roomId,
     players,
+    flowers,
     myPlayer,
     loading,
     createRoom,
     joinRoom,
     updatePosition,
     sendMessage,
-    changeEmoji
+    changeEmoji,
+    plantFlower,
+    waterFlower
   };
 
   return (

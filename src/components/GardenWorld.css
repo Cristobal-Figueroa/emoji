@@ -244,6 +244,26 @@
   gap: 10px;
   z-index: 100;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.emoji-picker::-webkit-scrollbar {
+  width: 8px;
+}
+
+.emoji-picker::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.emoji-picker::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.emoji-picker::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .emoji-option {
@@ -259,6 +279,123 @@
 .emoji-option:hover {
   transform: scale(1.2);
   border-color: #333;
+}
+
+.garden-flower {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  z-index: 5;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.garden-flower:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.flower-emoji {
+  font-size: 40px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  animation: sway 3s ease-in-out infinite;
+  line-height: 1;
+}
+
+.flower-water-bar {
+  width: 40px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+  border: 2px solid #333;
+}
+
+.flower-water-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4FC3F7, #2196F3);
+  transition: width 0.3s ease;
+}
+
+.flower-menu {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 3px solid #333;
+  border-radius: 20px;
+  padding: 20px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 300px;
+  width: calc(100% - 40px);
+}
+
+.flower-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #333;
+}
+
+.flower-menu-header h3 {
+  font-size: 12px;
+  color: #333;
+  margin: 0;
+}
+
+.close-btn {
+  background: #F44336;
+  color: white;
+  border: 2px solid #333;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'Press Start 2P', system-ui, sans-serif;
+}
+
+.flower-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.flower-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.flower-option:hover {
+  transform: scale(1.05);
+  border-color: #333;
+  background: #f0f0f0;
+}
+
+.flower-option-emoji {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.flower-option-name {
+  font-size: 9px;
+  color: #333;
+  text-align: center;
 }
 
 @media (max-width: 480px) {
