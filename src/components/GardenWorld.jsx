@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useGame } from '../contexts/GameContext';
 import { ref, remove } from 'firebase/database';
+import { database } from '../firebase/config';
 import Character from './Character';
 import './GardenWorld.css';
 
@@ -17,6 +18,8 @@ const GardenWorld = () => {
   const [plantingPosition, setPlantingPosition] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
+  const [selectedFlower, setSelectedFlower] = useState(null);
+  const [pressedButton, setPressedButton] = useState(null);
   const worldRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -119,25 +122,12 @@ const GardenWorld = () => {
 
   const handleWorldClick = (e) => {
     if (!worldRef.current) return;
-    
+
     const rect = worldRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     if (isErasing) {
-      // Borrar flor si está cerca del clic
-      const clickedFlower = flowers.find(flower => {
-        const flowerX = flower.x;
-        const flowerY = flower.y;
-        const distance = Math.sqrt(Math.pow(x - flowerX, 2) + Math.pow(y - flowerY, 2));
-        return distance < 8;
-      });
-      
-      if (clickedFlower) {
-        remove(ref(database, `rooms/${roomId}/flowers/${clickedFlower.id}`));
-        return;
-      }
-      
       // Borrar dibujo si está cerca del clic
       const filteredDrawings = drawings.filter(d => d.location === currentLocation);
       const clickedDrawing = filteredDrawings.find(drawing => {
@@ -149,22 +139,90 @@ const GardenWorld = () => {
           return distance < 5;
         });
       });
-      
+
       if (clickedDrawing) {
         deleteDrawing(clickedDrawing.id);
       }
+
+      // Si no se borró nada, salir sin hacer nada más
+      return;
     } else {
-      // Si el click es en una flor, regarla
+      // Mover el personaje
+      updatePosition(Math.max(5, Math.min(95, x)), Math.max(5, Math.min(95, y)));
+    }
+  };
+
+  const handleWorldTouch = (e) => {
+    const touch = e.changedTouches[0];
+    const rect = worldRef.current.getBoundingClientRect();
+    const x = ((touch.clientX - rect.left) / rect.width) * 100;
+    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+
+    if (isErasing) {
+      const filteredDrawings = drawings.filter(d => d.location === currentLocation);
+      const clickedDrawing = filteredDrawings.find(drawing => {
+        if (!drawing.points) return false;
+        return drawing.points.some(point => {
+          const pointX = (point.x / window.innerWidth) * 100;
+          const pointY = (point.y / window.innerHeight) * 100;
+          const distance = Math.sqrt(Math.pow(x - pointX, 2) + Math.pow(y - pointY, 2));
+          return distance < 5;
+        });
+      });
+
+      if (clickedDrawing) {
+        deleteDrawing(clickedDrawing.id);
+      }
+      return;
+    } else {
       const clickedFlower = flowers.find(flower => {
         const flowerX = flower.x;
         const flowerY = flower.y;
         const distance = Math.sqrt(Math.pow(x - flowerX, 2) + Math.pow(y - flowerY, 2));
-        return distance < 8;
+        return distance < 15;
       });
 
       if (clickedFlower) {
-        console.log('Regando flor:', clickedFlower.id);
-        waterFlower(clickedFlower.id);
+        setSelectedFlower(clickedFlower);
+        closeAllMenus();
+      } else {
+        updatePosition(Math.max(5, Math.min(95, x)), Math.max(5, Math.min(95, y)));
+      }
+    }
+  };
+
+  const handlePointerDown = (e) => {
+    const rect = worldRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    if (isErasing) {
+      const filteredDrawings = drawings.filter(d => d.location === currentLocation);
+      const clickedDrawing = filteredDrawings.find(drawing => {
+        if (!drawing.points) return false;
+        return drawing.points.some(point => {
+          const pointX = (point.x / window.innerWidth) * 100;
+          const pointY = (point.y / window.innerHeight) * 100;
+          const distance = Math.sqrt(Math.pow(x - pointX, 2) + Math.pow(y - pointY, 2));
+          return distance < 5;
+        });
+      });
+
+      if (clickedDrawing) {
+        deleteDrawing(clickedDrawing.id);
+      }
+      return;
+    } else {
+      const clickedFlower = flowers.find(flower => {
+        const flowerX = flower.x;
+        const flowerY = flower.y;
+        const distance = Math.sqrt(Math.pow(x - flowerX, 2) + Math.pow(y - flowerY, 2));
+        return distance < 15;
+      });
+
+      if (clickedFlower) {
+        setSelectedFlower(clickedFlower);
+        closeAllMenus();
       } else {
         updatePosition(Math.max(5, Math.min(95, x)), Math.max(5, Math.min(95, y)));
       }
@@ -217,6 +275,7 @@ const GardenWorld = () => {
     setShowFlowerMenu(false);
     setShowBackgroundMenu(false);
     setShowAccessoryMenu(false);
+    setSelectedFlower(null);
   };
 
   const openMenu = (menuSetter) => {
@@ -292,42 +351,71 @@ const GardenWorld = () => {
       currentPoints = [];
     };
 
-    // Capturar eventos del window cuando está en modo dibujo
-    window.addEventListener('mousedown', startDrawing);
-    window.addEventListener('mousemove', draw);
-    window.addEventListener('mouseup', stopDrawing);
+    // Capturar eventos del window solo cuando está en modo dibujo
+    if (isDrawing) {
+      window.addEventListener('mousedown', startDrawing);
+      window.addEventListener('mousemove', draw);
+      window.addEventListener('mouseup', stopDrawing);
 
-    // Touch events para móviles
-    window.addEventListener('touchstart', (e) => {
-      if (!isDrawing) return;
-      e.preventDefault();
-      const touch = e.touches[0];
-      startDrawing({ clientX: touch.clientX, clientY: touch.clientY });
-    });
-    window.addEventListener('touchmove', (e) => {
-      if (!isDrawing) return;
-      e.preventDefault();
-      const touch = e.touches[0];
-      draw({ clientX: touch.clientX, clientY: touch.clientY });
-    });
-    window.addEventListener('touchend', stopDrawing);
+      // Touch events para móviles
+      window.addEventListener('touchstart', (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        startDrawing({ clientX: touch.clientX, clientY: touch.clientY });
+      });
+      window.addEventListener('touchmove', (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        draw({ clientX: touch.clientX, clientY: touch.clientY });
+      });
+      window.addEventListener('touchend', stopDrawing);
+    }
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      window.removeEventListener('mousedown', startDrawing);
-      window.removeEventListener('mousemove', draw);
-      window.removeEventListener('mouseup', stopDrawing);
-      window.removeEventListener('touchstart', startDrawing);
-      window.removeEventListener('touchmove', draw);
-      window.removeEventListener('touchend', stopDrawing);
+      if (isDrawing) {
+        window.removeEventListener('mousedown', startDrawing);
+        window.removeEventListener('mousemove', draw);
+        window.removeEventListener('mouseup', stopDrawing);
+        window.removeEventListener('touchstart', startDrawing);
+        window.removeEventListener('touchmove', draw);
+        window.removeEventListener('touchend', stopDrawing);
+      }
     };
   }, [isDrawing, drawings, currentLocation, addDrawing]);
 
-  const otherPlayers = Object.entries(players).filter(([id, player]) => 
+  // Cerrar menús al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!worldRef.current) return;
+
+      // Verificar si el clic fue en un menú
+      const clickedMenu = e.target.closest('.flower-action-menu') ||
+                          e.target.closest('.emoji-picker') ||
+                          e.target.closest('.flower-menu') ||
+                          e.target.closest('.background-menu') ||
+                          e.target.closest('.accessory-menu') ||
+                          e.target.closest('.garden-flower');
+
+      if (!clickedMenu) {
+        closeAllMenus();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
+  const otherPlayers = Object.entries(players).filter(([id, player]) =>
     id !== user && player.location === currentLocation
   );
-
-  console.log('Flores en el estado:', flowers);
 
   return (
     <div className="garden-world">
@@ -364,7 +452,7 @@ const GardenWorld = () => {
         </div>
       )}
 
-      <div 
+      <div
         ref={worldRef}
         className="world-container"
         onClick={handleWorldClick}
@@ -403,17 +491,22 @@ const GardenWorld = () => {
         </div>
 
         {flowers.map(flower => (
-          <div 
+          <div
             key={flower.id}
             className="garden-flower"
-            style={{ 
-              left: `${flower.x}%`, 
-              top: `${flower.y}%` 
+            style={{
+              left: `${flower.x}%`,
+              top: `${flower.y}%`
             }}
             onClick={(e) => {
               e.stopPropagation();
-              console.log('Click en flor:', flower.id);
-              waterFlower(flower.id);
+              closeAllMenus();
+              setSelectedFlower(flower);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              closeAllMenus();
+              setSelectedFlower(flower);
             }}
           >
             <span className="flower-emoji">{getFlowerEmoji(flower.type, flower.stage)}</span>
@@ -596,7 +689,7 @@ const GardenWorld = () => {
       {showAccessoryMenu && (
         <div className="accessory-menu">
           <div className="accessory-menu-header">
-            <h3>� Accesorios</h3>
+            <h3>👗 Accesorios</h3>
             <button className="close-btn" onClick={() => setShowAccessoryMenu(false)}>✕</button>
           </div>
           <div className="accessory-options">
@@ -613,6 +706,53 @@ const GardenWorld = () => {
                 <span className="accessory-option-name">{acc.name}</span>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {selectedFlower && (
+        <div
+          className="flower-action-menu"
+          style={{
+            left: `${selectedFlower.x}%`,
+            top: `${selectedFlower.y}%`,
+            transform: 'translate(-50%, -122%)'
+          }}
+        >
+          <div className="flower-action-menu-header">
+            <h3>{flowerTypes.find(f => f.type === selectedFlower.type)?.name || 'Flor'}</h3>
+            <button className="close-btn" onClick={() => setSelectedFlower(null)}>✕</button>
+          </div>
+          <div className="flower-action-options">
+            <button
+              className={`flower-action-option ${pressedButton === 'water' ? 'pressed' : ''}`}
+              onClick={() => {
+                waterFlower(selectedFlower.id);
+              }}
+              onMouseDown={() => setPressedButton('water')}
+              onMouseUp={() => setPressedButton(null)}
+              onMouseLeave={() => setPressedButton(null)}
+              onTouchStart={() => setPressedButton('water')}
+              onTouchEnd={() => setPressedButton(null)}
+            >
+              <span className="flower-action-option-emoji">💧</span>
+              <span className="flower-action-option-name">Regar</span>
+            </button>
+            <button
+              className={`flower-action-option ${pressedButton === 'remove' ? 'pressed' : ''}`}
+              onClick={() => {
+                remove(ref(database, `rooms/${roomId}/flowers/${selectedFlower.id}`));
+                setSelectedFlower(null);
+              }}
+              onMouseDown={() => setPressedButton('remove')}
+              onMouseUp={() => setPressedButton(null)}
+              onMouseLeave={() => setPressedButton(null)}
+              onTouchStart={() => setPressedButton('remove')}
+              onTouchEnd={() => setPressedButton(null)}
+            >
+              <span className="flower-action-option-emoji">🗑️</span>
+              <span className="flower-action-option-name">Quitar</span>
+            </button>
           </div>
         </div>
       )}
