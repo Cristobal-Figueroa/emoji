@@ -176,7 +176,20 @@ const GardenWorld = () => {
     }
   };
 
-  const otherPlayers = Object.entries(players).filter(([id]) => id !== user?.uid);
+  const closeAllMenus = () => {
+    setShowChat(false);
+    setShowEmojiPicker(false);
+    setShowFlowerMenu(false);
+    setShowBackgroundMenu(false);
+    setShowAccessoryMenu(false);
+  };
+
+  const openMenu = (menuSetter) => {
+    closeAllMenus();
+    menuSetter(true);
+  };
+
+  const otherPlayers = Object.entries(players).filter(([id]) => id !== user);
 
   console.log('Flores en el estado:', flowers);
 
@@ -276,7 +289,7 @@ const GardenWorld = () => {
       <div className="controls">
         <button 
           className="control-btn chat-btn"
-          onClick={() => setShowChat(!showChat)}
+          onClick={() => openMenu(setShowChat)}
         >
           💬
         </button>
@@ -284,20 +297,20 @@ const GardenWorld = () => {
           className="control-btn plant-btn"
           onClick={() => {
             setPlantingPosition({ x: myPlayer.x, y: myPlayer.y + 5 });
-            setShowFlowerMenu(true);
+            openMenu(setShowFlowerMenu);
           }}
         >
           🌱
         </button>
         <button 
           className="control-btn accessory-btn"
-          onClick={() => setShowAccessoryMenu(!showAccessoryMenu)}
+          onClick={() => openMenu(setShowAccessoryMenu)}
         >
           {accessories.find(a => a.id === myPlayer.accessory)?.emoji || '👗'}
         </button>
         <button 
           className="control-btn emoji-btn"
-          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          onClick={() => openMenu(setShowEmojiPicker)}
         >
           {myPlayer.emoji}
         </button>
@@ -321,35 +334,47 @@ const GardenWorld = () => {
 
       {showChat && (
         <div className="chat-panel">
-          <input
-            type="text"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            placeholder="Escribe un mensaje..."
-            className="chat-input"
-            onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
-            autoFocus
-          />
-          <button className="send-btn" onClick={handleSendChat}>
-            ➤
-          </button>
+          <div className="chat-panel-header">
+            <h3>💬 Chat</h3>
+            <button className="close-btn" onClick={() => setShowChat(false)}>✕</button>
+          </div>
+          <div className="chat-panel-body">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Escribe un mensaje..."
+              className="chat-input"
+              onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
+              autoFocus
+            />
+            <button className="send-btn" onClick={handleSendChat}>
+              ➤
+            </button>
+          </div>
         </div>
       )}
 
       {showEmojiPicker && (
         <div className="emoji-picker">
-          {emojis.map(emoji => (
-            <button
-              key={emoji}
-              className="emoji-option"
-              onClick={() => {
-                changeEmoji(emoji);
-                setShowEmojiPicker(false);
-              }}
-            >
-              {emoji}
-            </button>
-          ))}
+          <div className="emoji-picker-header">
+            <h3>😀 Tu Emoji</h3>
+            <button className="close-btn" onClick={() => setShowEmojiPicker(false)}>✕</button>
+          </div>
+          <div className="emoji-options">
+            {emojis.map(emoji => (
+              <button
+                key={emoji}
+                className="emoji-option"
+                onClick={() => {
+                  changeEmoji(emoji);
+                  setShowEmojiPicker(false);
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

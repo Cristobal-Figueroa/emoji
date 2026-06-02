@@ -2,7 +2,7 @@ import React from 'react';
 import './Character.css';
 
 const Character = ({ player, isLocal = false }) => {
-  const { emoji, x, y, message, messageTime, accessory } = player;
+  const { id, emoji, x, y, message, messageTime, accessory } = player;
 
   const showMessage = message && messageTime && (Date.now() - messageTime < 5000);
 
@@ -43,7 +43,9 @@ const Character = ({ player, isLocal = false }) => {
         </div>
       )}
       <div className="character-emoji">{emoji}</div>
-      {isLocal && <div className="local-indicator">Tú</div>}
+      <div className={`name-tag ${isLocal ? 'local' : 'remote'}`}>
+        {id}
+      </div>
     </div>
   );
 };

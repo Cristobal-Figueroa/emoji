@@ -219,6 +219,11 @@
   margin-bottom: 15px;
   background: white;
   font-family: 'Press Start 2P', system-ui, sans-serif;
+  color: #000;
+}
+
+.room-input::placeholder {
+  color: #999;
 }
 
 .controls {
@@ -291,13 +296,35 @@
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
+  background: white;
+  border: 3px solid #333;
+  border-radius: 20px;
+  padding: 15px;
   z-index: 100;
   width: calc(100% - 40px);
   max-width: 280px;
-  padding: 0;
   box-sizing: border-box;
+}
+
+.chat-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #333;
+}
+
+.chat-panel-header h3 {
+  margin: 0;
+  font-size: 10px;
+  font-family: 'Press Start 2P', system-ui, sans-serif;
+  color: #333;
+}
+
+.chat-panel-body {
+  display: flex;
+  gap: 6px;
 }
 
 .chat-input {
@@ -340,13 +367,34 @@
   border: 3px solid #333;
   border-radius: 20px;
   padding: 15px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
   z-index: 100;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  max-height: 300px;
+  max-width: 300px;
+  width: calc(100% - 40px);
+  max-height: 350px;
   overflow-y: auto;
+}
+
+.emoji-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #333;
+}
+
+.emoji-picker-header h3 {
+  margin: 0;
+  font-size: 12px;
+  font-family: 'Press Start 2P', system-ui, sans-serif;
+  color: #333;
+}
+
+.emoji-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
 .emoji-picker::-webkit-scrollbar {

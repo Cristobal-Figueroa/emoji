@@ -13,7 +13,7 @@ export const useGame = () => {
 };
 
 export const GameProvider = ({ children }) => {
-  const [userId, setUserId] = useState(null);
+  const [userName, setUserName] = useState(null);
   const [roomId, setRoomId] = useState(null);
   const [players, setPlayers] = useState({});
   const [flowers, setFlowers] = useState([]);
@@ -31,6 +31,12 @@ export const GameProvider = ({ children }) => {
   const [allFlowers, setAllFlowers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const handleSetUsername = (name) => {
+    setUserName(name);
+    setMyPlayer(prev => ({ ...prev, id: name }));
+    localStorage.setItem('cozyUserName', name);
+  };
+
   // Filtrar flores por lugar actual
   useEffect(() => {
     const filteredFlowers = allFlowers.filter(flower => flower.location === currentLocation);
@@ -39,24 +45,41 @@ export const GameProvider = ({ children }) => {
   }, [currentLocation, allFlowers]);
 
   useEffect(() => {
-    // Generar ID local sin autenticación
-    const localId = localStorage.getItem('cozyUserId') || Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('cozyUserId', localId);
-    
-    setUserId(localId);
-    setMyPlayer(prev => ({ ...prev, id: localId }));
+    // Cargar nombre guardado
+    const savedName = localStorage.getItem('cozyUserName');
+    if (savedName) {
+      setUserName(savedName);
+      setMyPlayer(prev => ({ ...prev, id: savedName }));
+    }
     setLoading(false);
   }, []);
 
+  // Guardar y cargar última sala
+  useEffect(() => {
+    if (roomId) {
+      localStorage.setItem('cozyLastRoom', roomId);
+    }
+  }, [roomId]);
+
+  // Reconectar a última sala si existe
+  useEffect(() => {
+    if (userName && !roomId) {
+      const lastRoom = localStorage.getItem('cozyLastRoom');
+      if (lastRoom) {
+        joinRoom(lastRoom);
+      }
+    }
+  }, [userName]);
+
   const createRoom = async () => {
-    if (!userId) return;
+    if (!userName) return;
     
     const newRoomId = Date.now().toString();
     const roomRef = ref(database, `rooms/${newRoomId}`);
     
     await set(roomRef, {
       createdAt: Date.now(),
-      createdBy: userId
+      createdBy: userName
     });
 
     setRoomId(newRoomId);
@@ -65,7 +88,7 @@ export const GameProvider = ({ children }) => {
   };
 
   const joinRoom = async (roomIdToJoin) => {
-    if (!userId) return;
+    if (!userName) return;
 
     setRoomId(roomIdToJoin);
     
@@ -103,7 +126,8 @@ export const GameProvider = ({ children }) => {
     });
 
     // Agregar jugador actual a la sala
-    await update(ref(database, `rooms/${roomIdToJoin}/players/${userId}`), {
+    await update(ref(database, `rooms/${roomIdToJoin}/players/${userName}`), {
+      id: userName,
       emoji: myPlayer.emoji,
       x: myPlayer.x,
       y: myPlayer.y,
@@ -120,11 +144,11 @@ export const GameProvider = ({ children }) => {
   };
 
   const updatePosition = async (x, y) => {
-    if (!userId || !roomId) return;
+    if (!userName || !roomId) return;
 
     setMyPlayer(prev => ({ ...prev, x, y }));
 
-    await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+    await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       x,
       y,
       lastSeen: Date.now()
@@ -132,19 +156,19 @@ export const GameProvider = ({ children }) => {
   };
 
   const sendMessage = async (message) => {
-    if (!userId || !roomId) return;
+    if (!userName || !roomId) return;
 
     const now = Date.now();
     setMyPlayer(prev => ({ ...prev, message, messageTime: now }));
 
-    await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+    await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       message,
       messageTime: now
     });
 
     // Limpiar mensaje después de 5 segundos
     setTimeout(async () => {
-      await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+      await update(ref(database, `rooms/${roomId}/players/${userName}`), {
         message: '',
         messageTime: null
       });
@@ -153,17 +177,17 @@ export const GameProvider = ({ children }) => {
   };
 
   const changeEmoji = async (emoji) => {
-    if (!userId || !roomId) return;
+    if (!userName || !roomId) return;
 
     setMyPlayer(prev => ({ ...prev, emoji }));
 
-    await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+    await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       emoji
     });
   };
 
   const plantFlower = async (x, y, type) => {
-    if (!userId || !roomId) return;
+    if (!userName || !roomId) return;
 
     const newFlower = {
       type,
@@ -173,7 +197,7 @@ export const GameProvider = ({ children }) => {
       water: 50,
       plantedAt: Date.now(),
       lastWatered: null,
-      plantedBy: userId,
+      plantedBy: userName,
       location: currentLocation
     };
 
@@ -183,13 +207,13 @@ export const GameProvider = ({ children }) => {
   };
 
   const changeLocation = async (location) => {
-    if (!userId || !roomId) return;
+    if (!userName || !roomId) return;
 
     setCurrentLocation(location);
   };
 
   const waterFlower = async (flowerId) => {
-    if (!userId || !roomId) return;
+    if (!userName || !roomId) return;
 
     const flower = flowers.find(f => f.id === flowerId);
     if (!flower) return;
@@ -210,7 +234,7 @@ export const GameProvider = ({ children }) => {
   };
 
   const changeBackground = async (bg) => {
-    if (!userId || !roomId) return;
+    if (!userName || !roomId) return;
 
     setBackground(bg);
     await update(ref(database, `rooms/${roomId}`), {
@@ -219,17 +243,17 @@ export const GameProvider = ({ children }) => {
   };
 
   const changeAccessory = async (accessory) => {
-    if (!userId || !roomId) return;
+    if (!userName || !roomId) return;
 
     setMyPlayer(prev => ({ ...prev, accessory }));
 
-    await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+    await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       accessory
     });
   };
 
   const value = {
-    user: userId,
+    user: userName,
     roomId,
     players,
     flowers,
@@ -246,7 +270,8 @@ export const GameProvider = ({ children }) => {
     waterFlower,
     changeBackground,
     changeAccessory,
-    changeLocation
+    changeLocation,
+    setUsername: handleSetUsername
   };
 
   return (

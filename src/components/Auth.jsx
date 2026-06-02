@@ -3,12 +3,20 @@ import { useGame } from '../contexts/GameContext';
 import './Auth.css';
 
 const Auth = () => {
-  const { user } = useGame();
+  const { user, setUsername } = useGame();
+  const [inputName, setInputName] = useState('');
 
-  // Si ya tenemos usuario (ID local), no mostramos el login
+  // Si ya tenemos usuario (nombre), no mostramos el login
   if (user) {
     return null;
   }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (inputName.trim()) {
+      setUsername(inputName.trim());
+    }
+  };
 
   return (
     <div className="auth-container">
@@ -19,9 +27,20 @@ const Auth = () => {
           <p>Un espacio especial para ti y tu pareja</p>
         </div>
         
-        <p className="auth-footer">
-          Cargando...
-        </p>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={inputName}
+            onChange={(e) => setInputName(e.target.value)}
+            placeholder="Tu nombre..."
+            className="auth-input"
+            maxLength={20}
+            autoFocus
+          />
+          <button type="submit" className="auth-btn" disabled={!inputName.trim()}>
+            🌱 Entrar
+          </button>
+        </form>
       </div>
     </div>
   );
