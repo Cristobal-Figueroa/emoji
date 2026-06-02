@@ -75,6 +75,12 @@ const GardenWorld = () => {
         </div>
       )}
 
+      {roomId && (
+        <div className="room-info">
+          Sala: {roomId.slice(-6)}
+        </div>
+      )}
+
       <div 
         ref={worldRef}
         className="world-container"
@@ -115,11 +121,6 @@ const GardenWorld = () => {
         >
           {myPlayer.emoji}
         </button>
-        {roomId && (
-          <div className="room-info">
-            Sala: {roomId.slice(-6)}
-          </div>
-        )}
       </div>
 
       {showChat && (
@@ -134,7 +135,7 @@ const GardenWorld = () => {
             autoFocus
           />
           <button className="send-btn" onClick={handleSendChat}>
-            Enviar
+            ➤
           </button>
         </div>
       )}
