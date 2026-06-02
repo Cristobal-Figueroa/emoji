@@ -4,7 +4,7 @@ import Character from './Character';
 import './GardenWorld.css';
 
 const GardenWorld = () => {
-  const { user, roomId, players, flowers, background, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory } = useGame();
+  const { user, roomId, players, flowers, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation } = useGame();
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -15,6 +15,13 @@ const GardenWorld = () => {
   const [showAccessoryMenu, setShowAccessoryMenu] = useState(false);
   const [plantingPosition, setPlantingPosition] = useState(null);
   const worldRef = useRef(null);
+
+  const locations = [
+    { id: 'garden', name: '🏡 Jardín', background: 'meadow' },
+    { id: 'beach', name: '🏖️ Playa', background: 'beach' },
+    { id: 'forest', name: '🌲 Bosque', background: 'forest' },
+    { id: 'house', name: '🏠 Casa', background: 'sunset' }
+  ];
 
   const emojis = [
     '😊', '🥰', '😎', '🤗', '😇', '🥳', '😸', '🦊', '🐰', '🐻', '🐼', '🦄',
@@ -33,12 +40,54 @@ const GardenWorld = () => {
   ];
 
   const backgrounds = [
-    { id: 'meadow', name: '🌿 Prado', gradient: 'linear-gradient(180deg, #87CEEB 0%, #90EE90 50%, #228B22 100%)' },
-    { id: 'beach', name: '🏖️ Playa', gradient: 'linear-gradient(180deg, #87CEEB 0%, #FFD700 50%, #F4A460 100%)' },
-    { id: 'forest', name: '🌲 Bosque', gradient: 'linear-gradient(180deg, #2E8B57 0%, #228B22 50%, #006400 100%)' },
-    { id: 'mountain', name: '⛰️ Montaña', gradient: 'linear-gradient(180deg, #87CEEB 0%, #A9A9A9 50%, #696969 100%)' },
-    { id: 'sunset', name: '🌅 Atardecer', gradient: 'linear-gradient(180deg, #FF6B6B 0%, #FFD93D 50%, #FF8C00 100%)' },
-    { id: 'night', name: '🌙 Noche', gradient: 'linear-gradient(180deg, #191970 0%, #4B0082 50%, #000000 100%)' }
+    { 
+      id: 'meadow', 
+      name: '🌿 Prado', 
+      gradient: 'linear-gradient(180deg, #87CEEB 0%, #98FB98 30%, #32CD32 60%, #228B22 100%)',
+      pattern: 'meadow'
+    },
+    { 
+      id: 'beach', 
+      name: '🏖️ Playa', 
+      gradient: 'linear-gradient(180deg, #87CEEB 0%, #FFD700 40%, #F4A460 70%, #DEB887 100%)',
+      pattern: 'beach'
+    },
+    { 
+      id: 'forest', 
+      name: '🌲 Bosque', 
+      gradient: 'linear-gradient(180deg, #2E8B57 0%, #228B22 40%, #006400 70%, #004d00 100%)',
+      pattern: 'forest'
+    },
+    { 
+      id: 'mountain', 
+      name: '⛰️ Montaña', 
+      gradient: 'linear-gradient(180deg, #87CEEB 0%, #B0C4DE 30%, #A9A9A9 50%, #696969 80%, #2F4F4F 100%)',
+      pattern: 'mountain'
+    },
+    { 
+      id: 'sunset', 
+      name: '🌅 Atardecer', 
+      gradient: 'linear-gradient(180deg, #FF6B6B 0%, #FFD93D 30%, #FF8C00 50%, #FF4500 80%, #8B0000 100%)',
+      pattern: 'sunset'
+    },
+    { 
+      id: 'night', 
+      name: '🌙 Noche', 
+      gradient: 'linear-gradient(180deg, #191970 0%, #4B0082 30%, #2F004F 60%, #000000 100%)',
+      pattern: 'night'
+    },
+    { 
+      id: 'snow', 
+      name: '❄️ Nieve', 
+      gradient: 'linear-gradient(180deg, #E0FFFF 0%, #B0E0E6 30%, #87CEEB 60%, #4682B4 100%)',
+      pattern: 'snow'
+    },
+    { 
+      id: 'desert', 
+      name: '🏜️ Desierto', 
+      gradient: 'linear-gradient(180deg, #FFD700 0%, #FFA500 30%, #FF8C00 60%, #8B4513 100%)',
+      pattern: 'desert'
+    }
   ];
 
   const accessories = [
@@ -174,6 +223,7 @@ const GardenWorld = () => {
       >
         <div 
           className="garden-background"
+          data-pattern={backgrounds.find(bg => bg.id === background)?.pattern || 'meadow'}
           style={{ 
             background: backgrounds.find(bg => bg.id === background)?.gradient || backgrounds[0].gradient
           }}
@@ -257,6 +307,22 @@ const GardenWorld = () => {
         >
           {myPlayer.emoji}
         </button>
+      </div>
+
+      <div className="locations">
+        {locations.map(loc => (
+          <button 
+            key={loc.id}
+            className={`control-btn location-btn ${currentLocation === loc.id ? 'active' : ''}`}
+            onClick={() => {
+              changeLocation(loc.id);
+              changeBackground(loc.background);
+            }}
+            title={loc.name}
+          >
+            {loc.name.split(' ')[0]}
+          </button>
+        ))}
       </div>
 
       {showChat && (

@@ -18,6 +18,7 @@ export const GameProvider = ({ children }) => {
   const [players, setPlayers] = useState({});
   const [flowers, setFlowers] = useState([]);
   const [background, setBackground] = useState('meadow');
+  const [currentLocation, setCurrentLocation] = useState('garden');
   const [myPlayer, setMyPlayer] = useState({
     id: null,
     emoji: '😊',
@@ -27,7 +28,15 @@ export const GameProvider = ({ children }) => {
     messageTime: null,
     accessory: null
   });
+  const [allFlowers, setAllFlowers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Filtrar flores por lugar actual
+  useEffect(() => {
+    const filteredFlowers = allFlowers.filter(flower => flower.location === currentLocation);
+    setFlowers(filteredFlowers);
+    console.log('Lugar actual:', currentLocation, 'Flores filtradas:', filteredFlowers);
+  }, [currentLocation, allFlowers]);
 
   useEffect(() => {
     // Generar ID local sin autenticación
@@ -77,11 +86,11 @@ export const GameProvider = ({ children }) => {
       console.log('Flores cargadas de Firebase:', data);
       if (data) {
         const flowersArray = Object.entries(data).map(([id, flower]) => ({ id, ...flower }));
-        console.log('Array de flores:', flowersArray);
-        setFlowers(flowersArray);
+        console.log('Array de flores sin filtrar:', flowersArray);
+        setAllFlowers(flowersArray);
       } else {
         console.log('No hay flores en la sala');
-        setFlowers([]);
+        setAllFlowers([]);
       }
     });
 
@@ -164,12 +173,19 @@ export const GameProvider = ({ children }) => {
       water: 50,
       plantedAt: Date.now(),
       lastWatered: null,
-      plantedBy: userId
+      plantedBy: userId,
+      location: currentLocation
     };
 
     const flowerId = Date.now().toString();
     console.log('Plantando flor:', flowerId, newFlower);
     await update(ref(database, `rooms/${roomId}/flowers/${flowerId}`), newFlower);
+  };
+
+  const changeLocation = async (location) => {
+    if (!userId || !roomId) return;
+
+    setCurrentLocation(location);
   };
 
   const waterFlower = async (flowerId) => {
@@ -218,6 +234,7 @@ export const GameProvider = ({ children }) => {
     players,
     flowers,
     background,
+    currentLocation,
     myPlayer,
     loading,
     createRoom,
@@ -228,7 +245,8 @@ export const GameProvider = ({ children }) => {
     plantFlower,
     waterFlower,
     changeBackground,
-    changeAccessory
+    changeAccessory,
+    changeLocation
   };
 
   return (

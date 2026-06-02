@@ -21,6 +21,86 @@
   left: 0;
 }
 
+.garden-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Patrones para diferentes fondos */
+.garden-background[data-pattern="meadow"]::before {
+  background-image: 
+    radial-gradient(circle at 20% 30%, #32CD32 2px, transparent 2px),
+    radial-gradient(circle at 80% 20%, #228B22 3px, transparent 3px),
+    radial-gradient(circle at 40% 70%, #32CD32 2px, transparent 2px),
+    radial-gradient(circle at 60% 80%, #228B22 2px, transparent 2px);
+  background-size: 100px 100px;
+}
+
+.garden-background[data-pattern="beach"]::before {
+  background-image: 
+    radial-gradient(circle at 30% 60%, #F4A460 4px, transparent 4px),
+    radial-gradient(circle at 70% 70%, #DEB887 3px, transparent 3px),
+    radial-gradient(circle at 50% 80%, #F4A460 2px, transparent 2px);
+  background-size: 80px 80px;
+}
+
+.garden-background[data-pattern="forest"]::before {
+  background-image: 
+    radial-gradient(circle at 15% 25%, #006400 3px, transparent 3px),
+    radial-gradient(circle at 85% 35%, #228B22 4px, transparent 4px),
+    radial-gradient(circle at 45% 75%, #006400 2px, transparent 2px),
+    radial-gradient(circle at 65% 85%, #228B22 3px, transparent 3px);
+  background-size: 120px 120px;
+}
+
+.garden-background[data-pattern="mountain"]::before {
+  background-image: 
+    linear-gradient(135deg, transparent 40%, #696969 40%, #696969 42%, transparent 42%),
+    linear-gradient(225deg, transparent 40%, #A9A9A9 40%, #A9A9A9 42%, transparent 42%);
+  background-size: 60px 60px;
+}
+
+.garden-background[data-pattern="sunset"]::before {
+  background-image: 
+    radial-gradient(circle at 25% 75%, #FF4500 3px, transparent 3px),
+    radial-gradient(circle at 75% 65%, #FF8C00 4px, transparent 4px),
+    radial-gradient(circle at 50% 85%, #FF6B6B 2px, transparent 2px);
+  background-size: 90px 90px;
+}
+
+.garden-background[data-pattern="night"]::before {
+  background-image: 
+    radial-gradient(circle at 20% 20%, white 1px, transparent 1px),
+    radial-gradient(circle at 80% 30%, white 1.5px, transparent 1.5px),
+    radial-gradient(circle at 40% 60%, white 1px, transparent 1px),
+    radial-gradient(circle at 70% 80%, white 1.5px, transparent 1.5px);
+  background-size: 150px 150px;
+}
+
+.garden-background[data-pattern="snow"]::before {
+  background-image: 
+    radial-gradient(circle at 10% 20%, white 2px, transparent 2px),
+    radial-gradient(circle at 90% 30%, white 1.5px, transparent 1.5px),
+    radial-gradient(circle at 30% 60%, white 2px, transparent 2px),
+    radial-gradient(circle at 70% 70%, white 1.5px, transparent 1.5px),
+    radial-gradient(circle at 50% 85%, white 2px, transparent 2px);
+  background-size: 100px 100px;
+}
+
+.garden-background[data-pattern="desert"]::before {
+  background-image: 
+    radial-gradient(circle at 25% 65%, #8B4513 3px, transparent 3px),
+    radial-gradient(circle at 75% 75%, #A0522D 2px, transparent 2px),
+    radial-gradient(circle at 50% 85%, #8B4513 2px, transparent 2px);
+  background-size: 70px 70px;
+}
+
 .grass-pattern {
   width: 100%;
   height: 100%;
@@ -139,11 +219,27 @@
 .controls {
   position: fixed;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 20px;
   display: flex;
-  gap: 15px;
+  flex-direction: column;
+  gap: 10px;
   z-index: 100;
+}
+
+.locations {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+}
+
+.location-btn.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #2E7D32;
 }
 
 .control-btn {
