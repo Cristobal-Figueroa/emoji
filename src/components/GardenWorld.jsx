@@ -33,10 +33,16 @@ const GardenWorld = () => {
   ];
 
   const emojis = [
-    '😊', '🥰', '😎', '🤗', '😇', '🥳', '😸', '🦊', '🐰', '🐻', '🐼', '🦄',
-    '🐶', '🐱', '🐭', '🐹', '🐲', '🐢', '🦉', '🦋', '🌸', '🌺', '🌻', '🌹',
-    '🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🌈', '⭐', '🌙', '☀️', '🎈', '🎀',
-    '🎭', '🎪', '🎨', '🎬', '🎮', '🎯', '🎲', '🎸', '🎹', '🎺', '🎻', '🥁'
+    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊',
+    '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '🥲', '😋', '😛', '😜',
+    '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶',
+    '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒',
+    '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎',
+    '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦',
+    '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩',
+    '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡',
+    '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽',
+    '🙀', '😿', '😾', '🙈', '🙉', '🙊'
   ];
 
   const flowerTypes = [
@@ -108,6 +114,25 @@ const GardenWorld = () => {
     { id: 'flower', name: '💐 Flores', emoji: '💐' },
     { id: 'star', name: '⭐ Estrella', emoji: '⭐' },
     { id: 'heart', name: '❤️ Corazón', emoji: '❤️' },
+    { id: 'love1', name: '💕 Amor', emoji: '💕' },
+    { id: 'love2', name: '💖 Brilla', emoji: '💖' },
+    { id: 'love3', name: '💗 Latido', emoji: '💗' },
+    { id: 'love4', name: '💓 Latido2', emoji: '💓' },
+    { id: 'love5', name: '💞 Círculo', emoji: '💞' },
+    { id: 'love6', name: '💝 Cinta', emoji: '💝' },
+    { id: 'love7', name: '💘 Flecha', emoji: '💘' },
+    { id: 'love8', name: '💌 Carta', emoji: '💌' },
+    { id: 'love9', name: '💋 Beso', emoji: '💋' },
+    { id: 'love10', name: '❣️ Exclama', emoji: '❣️' },
+    { id: 'love11', name: '💔 Roto', emoji: '💔' },
+    { id: 'love12', name: '🧡 Naranja', emoji: '🧡' },
+    { id: 'love13', name: '💛 Amarillo', emoji: '💛' },
+    { id: 'love14', name: '💚 Verde', emoji: '💚' },
+    { id: 'love15', name: '💙 Azul', emoji: '💙' },
+    { id: 'love16', name: '💜 Morado', emoji: '💜' },
+    { id: 'love17', name: '🤎 Café', emoji: '🤎' },
+    { id: 'love18', name: '🖤 Negro', emoji: '🖤' },
+    { id: 'love19', name: '🤍 Blanco', emoji: '🤍' },
     { id: 'wings', name: '👼 Alas', emoji: '👼' },
     { id: 'halo', name: '😇 Halo', emoji: '😇' },
     { id: 'mask', name: '🎭 Máscara', emoji: '🎭' },
