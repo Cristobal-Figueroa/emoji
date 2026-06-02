@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { database } from '../firebase/config';
-import { ref, set, onValue, update, push } from 'firebase/database';
+import { ref, set, onValue, update, push, remove } from 'firebase/database';
 
 const GameContext = createContext();
 
@@ -29,6 +29,7 @@ export const GameProvider = ({ children }) => {
     accessory: null
   });
   const [allFlowers, setAllFlowers] = useState([]);
+  const [drawings, setDrawings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const handleSetUsername = (name) => {
@@ -43,6 +44,12 @@ export const GameProvider = ({ children }) => {
     setFlowers(filteredFlowers);
     console.log('Lugar actual:', currentLocation, 'Flores filtradas:', filteredFlowers);
   }, [currentLocation, allFlowers]);
+
+  // Filtrar dibujos por lugar actual
+  useEffect(() => {
+    const filteredDrawings = drawings.filter(drawing => drawing.location === currentLocation);
+    // Esto se usará en GardenWorld para renderizar los dibujos
+  }, [currentLocation, drawings]);
 
   useEffect(() => {
     // Cargar nombre guardado
@@ -117,6 +124,17 @@ export const GameProvider = ({ children }) => {
       }
     });
 
+    const drawingsRef = ref(database, `rooms/${roomIdToJoin}/drawings`);
+    const unsubscribeDrawings = onValue(drawingsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const drawingsArray = Object.entries(data).map(([id, drawing]) => ({ id, ...drawing }));
+        setDrawings(drawingsArray);
+      } else {
+        setDrawings([]);
+      }
+    });
+
     const roomRef = ref(database, `rooms/${roomIdToJoin}`);
     const unsubscribeRoom = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
@@ -133,12 +151,14 @@ export const GameProvider = ({ children }) => {
       y: myPlayer.y,
       message: '',
       messageTime: null,
-      lastSeen: Date.now()
+      lastSeen: Date.now(),
+      location: currentLocation
     });
 
     return () => {
       unsubscribePlayers();
       unsubscribeFlowers();
+      unsubscribeDrawings();
       unsubscribeRoom();
     };
   };
@@ -151,7 +171,8 @@ export const GameProvider = ({ children }) => {
     await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       x,
       y,
-      lastSeen: Date.now()
+      lastSeen: Date.now(),
+      location: currentLocation
     });
   };
 
@@ -163,14 +184,16 @@ export const GameProvider = ({ children }) => {
 
     await update(ref(database, `rooms/${roomId}/players/${userName}`), {
       message,
-      messageTime: now
+      messageTime: now,
+      location: currentLocation
     });
 
     // Limpiar mensaje después de 5 segundos
     setTimeout(async () => {
       await update(ref(database, `rooms/${roomId}/players/${userName}`), {
         message: '',
-        messageTime: null
+        messageTime: null,
+        location: currentLocation
       });
       setMyPlayer(prev => ({ ...prev, message: '', messageTime: null }));
     }, 5000);
@@ -182,7 +205,8 @@ export const GameProvider = ({ children }) => {
     setMyPlayer(prev => ({ ...prev, emoji }));
 
     await update(ref(database, `rooms/${roomId}/players/${userName}`), {
-      emoji
+      emoji,
+      location: currentLocation
     });
   };
 
@@ -210,6 +234,10 @@ export const GameProvider = ({ children }) => {
     if (!userName || !roomId) return;
 
     setCurrentLocation(location);
+    
+    await update(ref(database, `rooms/${roomId}/players/${userName}`), {
+      location
+    });
   };
 
   const waterFlower = async (flowerId) => {
@@ -248,8 +276,26 @@ export const GameProvider = ({ children }) => {
     setMyPlayer(prev => ({ ...prev, accessory }));
 
     await update(ref(database, `rooms/${roomId}/players/${userName}`), {
-      accessory
+      accessory,
+      location: currentLocation
     });
+  };
+
+  const addDrawing = async (points) => {
+    if (!userName || !roomId) return;
+
+    const drawingId = Date.now().toString();
+    await update(ref(database, `rooms/${roomId}/drawings/${drawingId}`), {
+      points,
+      location: currentLocation,
+      createdBy: userName,
+      createdAt: Date.now()
+    });
+  };
+
+  const deleteDrawing = async (drawingId) => {
+    if (!userName || !roomId) return;
+    await remove(ref(database, `rooms/${roomId}/drawings/${drawingId}`));
   };
 
   const value = {
@@ -257,6 +303,7 @@ export const GameProvider = ({ children }) => {
     roomId,
     players,
     flowers,
+    drawings,
     background,
     currentLocation,
     myPlayer,
@@ -271,6 +318,8 @@ export const GameProvider = ({ children }) => {
     changeBackground,
     changeAccessory,
     changeLocation,
+    addDrawing,
+    deleteDrawing,
     setUsername: handleSetUsername
   };
 

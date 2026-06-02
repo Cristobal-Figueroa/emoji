@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useGame } from '../contexts/GameContext';
+import { ref, remove } from 'firebase/database';
 import Character from './Character';
 import './GardenWorld.css';
 
 const GardenWorld = () => {
-  const { user, roomId, players, flowers, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation } = useGame();
+  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation, addDrawing, deleteDrawing } = useGame();
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -14,7 +15,10 @@ const GardenWorld = () => {
   const [showBackgroundMenu, setShowBackgroundMenu] = useState(false);
   const [showAccessoryMenu, setShowAccessoryMenu] = useState(false);
   const [plantingPosition, setPlantingPosition] = useState(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [isErasing, setIsErasing] = useState(false);
   const worldRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const locations = [
     { id: 'garden', name: '🏡 Jardín', background: 'meadow' },
@@ -120,19 +124,50 @@ const GardenWorld = () => {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
-    // Si el click es en una flor, regarla
-    const clickedFlower = flowers.find(flower => {
-      const flowerX = flower.x;
-      const flowerY = flower.y;
-      const distance = Math.sqrt(Math.pow(x - flowerX, 2) + Math.pow(y - flowerY, 2));
-      return distance < 8;
-    });
-
-    if (clickedFlower) {
-      console.log('Regando flor:', clickedFlower.id);
-      waterFlower(clickedFlower.id);
+    if (isErasing) {
+      // Borrar flor si está cerca del clic
+      const clickedFlower = flowers.find(flower => {
+        const flowerX = flower.x;
+        const flowerY = flower.y;
+        const distance = Math.sqrt(Math.pow(x - flowerX, 2) + Math.pow(y - flowerY, 2));
+        return distance < 8;
+      });
+      
+      if (clickedFlower) {
+        remove(ref(database, `rooms/${roomId}/flowers/${clickedFlower.id}`));
+        return;
+      }
+      
+      // Borrar dibujo si está cerca del clic
+      const filteredDrawings = drawings.filter(d => d.location === currentLocation);
+      const clickedDrawing = filteredDrawings.find(drawing => {
+        if (!drawing.points) return false;
+        return drawing.points.some(point => {
+          const pointX = (point.x / window.innerWidth) * 100;
+          const pointY = (point.y / window.innerHeight) * 100;
+          const distance = Math.sqrt(Math.pow(x - pointX, 2) + Math.pow(y - pointY, 2));
+          return distance < 5;
+        });
+      });
+      
+      if (clickedDrawing) {
+        deleteDrawing(clickedDrawing.id);
+      }
     } else {
-      updatePosition(Math.max(5, Math.min(95, x)), Math.max(5, Math.min(95, y)));
+      // Si el click es en una flor, regarla
+      const clickedFlower = flowers.find(flower => {
+        const flowerX = flower.x;
+        const flowerY = flower.y;
+        const distance = Math.sqrt(Math.pow(x - flowerX, 2) + Math.pow(y - flowerY, 2));
+        return distance < 8;
+      });
+
+      if (clickedFlower) {
+        console.log('Regando flor:', clickedFlower.id);
+        waterFlower(clickedFlower.id);
+      } else {
+        updatePosition(Math.max(5, Math.min(95, x)), Math.max(5, Math.min(95, y)));
+      }
     }
   };
 
@@ -189,7 +224,108 @@ const GardenWorld = () => {
     menuSetter(true);
   };
 
-  const otherPlayers = Object.entries(players).filter(([id]) => id !== user);
+  // Configurar canvas para dibujo
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let currentPoints = [];
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      redrawCanvas();
+    };
+
+    const redrawCanvas = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const filteredDrawings = drawings.filter(d => d.location === currentLocation);
+      filteredDrawings.forEach(drawing => {
+        if (drawing.points && drawing.points.length > 1) {
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ctx.moveTo(drawing.points[0].x, drawing.points[0].y);
+          for (let i = 1; i < drawing.points.length; i++) {
+            ctx.lineTo(drawing.points[i].x, drawing.points[i].y);
+          }
+          ctx.stroke();
+        }
+      });
+    };
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const startDrawing = (e) => {
+      if (!isDrawing) return;
+      drawing = true;
+      [lastX, lastY] = [e.clientX, e.clientY];
+      currentPoints = [{ x: e.clientX, y: e.clientY }];
+    };
+
+    const draw = (e) => {
+      if (!drawing || !isDrawing) return;
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(e.clientX, e.clientY);
+      ctx.stroke();
+      [lastX, lastY] = [e.clientX, e.clientY];
+      currentPoints.push({ x: e.clientX, y: e.clientY });
+    };
+
+    const stopDrawing = async () => {
+      if (drawing && currentPoints.length > 1) {
+        await addDrawing(currentPoints);
+      }
+      drawing = false;
+      currentPoints = [];
+    };
+
+    // Capturar eventos del window cuando está en modo dibujo
+    window.addEventListener('mousedown', startDrawing);
+    window.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDrawing);
+
+    // Touch events para móviles
+    window.addEventListener('touchstart', (e) => {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      startDrawing({ clientX: touch.clientX, clientY: touch.clientY });
+    });
+    window.addEventListener('touchmove', (e) => {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      draw({ clientX: touch.clientX, clientY: touch.clientY });
+    });
+    window.addEventListener('touchend', stopDrawing);
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('mousedown', startDrawing);
+      window.removeEventListener('mousemove', draw);
+      window.removeEventListener('mouseup', stopDrawing);
+      window.removeEventListener('touchstart', startDrawing);
+      window.removeEventListener('touchmove', draw);
+      window.removeEventListener('touchend', stopDrawing);
+    };
+  }, [isDrawing, drawings, currentLocation, addDrawing]);
+
+  const otherPlayers = Object.entries(players).filter(([id, player]) => 
+    id !== user && player.location === currentLocation
+  );
 
   console.log('Flores en el estado:', flowers);
 
@@ -241,6 +377,19 @@ const GardenWorld = () => {
             background: backgrounds.find(bg => bg.id === background)?.gradient || backgrounds[0].gradient
           }}
         >
+          <canvas
+            ref={canvasRef}
+            className="drawing-canvas"
+            style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              zIndex: 5
+            }}
+          />
           <div className="grass-pattern"></div>
           <div className="decorations">
             <span className="decoration flower1">🌸</span>
@@ -301,6 +450,24 @@ const GardenWorld = () => {
           }}
         >
           🌱
+        </button>
+        <button 
+          className={`control-btn draw-btn ${isDrawing ? 'active' : ''}`}
+          onClick={() => {
+            setIsDrawing(!isDrawing);
+            setIsErasing(false);
+          }}
+        >
+          ✏️
+        </button>
+        <button 
+          className={`control-btn clear-btn ${isErasing ? 'active' : ''}`}
+          onClick={() => {
+            setIsErasing(!isErasing);
+            setIsDrawing(false);
+          }}
+        >
+          🧹
         </button>
         <button 
           className="control-btn accessory-btn"
@@ -449,6 +616,7 @@ const GardenWorld = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };
