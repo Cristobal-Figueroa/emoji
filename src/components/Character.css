@@ -1,0 +1,108 @@
+.character {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: left 0.3s ease, top 0.3s ease;
+  z-index: 10;
+}
+
+.character-emoji {
+  font-size: 48px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.chat-bubble {
+  position: absolute;
+  bottom: 60px;
+  background: white;
+  border: 3px solid #333;
+  border-radius: 20px;
+  padding: 12px 16px;
+  max-width: 200px;
+  min-width: 80px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease;
+}
+
+.chat-bubble-tail {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid white;
+}
+
+.chat-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 14px solid #333;
+}
+
+.chat-message {
+  font-size: 14px;
+  color: #333;
+  font-weight: bold;
+  word-wrap: break-word;
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.local-indicator {
+  position: absolute;
+  top: -25px;
+  background: #4CAF50;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 2px solid #333;
+  white-space: nowrap;
+}
+
+.character.local .character-emoji {
+  filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.5));
+}
+
+.character.remote .character-emoji {
+  filter: drop-shadow(0 0 10px rgba(33, 150, 243, 0.5));
+}
+
+@media (max-width: 480px) {
+  .character-emoji {
+    font-size: 36px;
+  }
+
+  .chat-bubble {
+    bottom: 50px;
+    padding: 10px 12px;
+    max-width: 150px;
+  }
+
+  .chat-message {
+    font-size: 12px;
+  }
+}
