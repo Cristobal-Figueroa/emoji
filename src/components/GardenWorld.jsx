@@ -127,14 +127,16 @@ const GardenWorld = () => {
 
     // Verificar si el clic está cerca de botones o menús
     const controlPanel = document.querySelector('.control-panel');
-    const chatPanel = document.querySelector('.chat-panel');
+    const chatPanelBody = document.querySelector('.chat-panel-body');
     const emojiPicker = document.querySelector('.emoji-picker');
     const flowerMenu = document.querySelector('.flower-menu');
     const backgroundMenu = document.querySelector('.background-menu');
     const accessoryMenu = document.querySelector('.accessory-menu');
     const flowerActionMenu = document.querySelector('.flower-action-menu');
+    const changeRoomBtn = document.querySelector('.change-room-btn');
+    const sendBtn = document.querySelector('.send-btn');
 
-    const elements = [controlPanel, chatPanel, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu].filter(Boolean);
+    const elements = [controlPanel, chatPanelBody, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu, changeRoomBtn, sendBtn].filter(Boolean);
 
     for (const element of elements) {
       const rect = element.getBoundingClientRect();
@@ -257,14 +259,16 @@ const GardenWorld = () => {
 
     // Verificar si el clic está cerca de botones o menús
     const controlPanel = document.querySelector('.control-panel');
-    const chatPanel = document.querySelector('.chat-panel');
+    const chatPanelBody = document.querySelector('.chat-panel-body');
     const emojiPicker = document.querySelector('.emoji-picker');
     const flowerMenu = document.querySelector('.flower-menu');
     const backgroundMenu = document.querySelector('.background-menu');
     const accessoryMenu = document.querySelector('.accessory-menu');
     const flowerActionMenu = document.querySelector('.flower-action-menu');
+    const changeRoomBtn = document.querySelector('.change-room-btn');
+    const sendBtn = document.querySelector('.send-btn');
 
-    const elements = [controlPanel, chatPanel, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu].filter(Boolean);
+    const elements = [controlPanel, chatPanelBody, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu, changeRoomBtn, sendBtn].filter(Boolean);
 
     for (const element of elements) {
       const rect = element.getBoundingClientRect();
@@ -458,7 +462,10 @@ const GardenWorld = () => {
                           e.target.closest('.flower-menu') ||
                           e.target.closest('.background-menu') ||
                           e.target.closest('.accessory-menu') ||
-                          e.target.closest('.garden-flower');
+                          e.target.closest('.garden-flower') ||
+                          e.target.closest('.chat-panel-body') ||
+                          e.target.closest('.change-room-btn') ||
+                          e.target.closest('.room-modal');
 
       if (!clickedMenu) {
         closeAllMenus();
@@ -511,6 +518,12 @@ const GardenWorld = () => {
         <div className="room-info">
           Sala: {roomId.slice(-6)}
         </div>
+      )}
+
+      {roomId && (
+        <button className="change-room-btn" onClick={() => setShowRoomModal(true)}>
+          🔄
+        </button>
       )}
 
       <div
@@ -684,25 +697,19 @@ const GardenWorld = () => {
       </div>
 
       {showChat && (
-        <div className="chat-panel">
-          <div className="chat-panel-header">
-            <h3>💬 Chat</h3>
-            <button className="close-btn" onClick={() => setShowChat(false)}>✕</button>
-          </div>
-          <div className="chat-panel-body">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Escribe un mensaje..."
-              className="chat-input"
-              onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
-              autoFocus
-            />
-            <button className="send-btn" onClick={handleSendChat}>
-              ➤
-            </button>
-          </div>
+        <div className="chat-panel-body">
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            placeholder="Escribe un mensaje..."
+            className="chat-input"
+            onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
+            autoFocus
+          />
+          <button className="send-btn" onClick={handleSendChat}>
+            ➤
+          </button>
         </div>
       )}
 
