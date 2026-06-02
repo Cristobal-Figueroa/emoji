@@ -163,6 +163,13 @@ export const GameProvider = ({ children }) => {
     };
   };
 
+  const leaveRoom = () => {
+    setRoomId(null);
+    setPlayers({});
+    setAllFlowers([]);
+    setDrawings([]);
+  };
+
   const updatePosition = async (x, y) => {
     if (!userName || !roomId) return;
 
@@ -315,6 +322,7 @@ export const GameProvider = ({ children }) => {
     background,
     currentLocation,
     myPlayer,
+    leaveRoom,
     loading,
     createRoom,
     joinRoom,

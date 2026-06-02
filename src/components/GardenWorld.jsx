@@ -6,7 +6,7 @@ import Character from './Character';
 import './GardenWorld.css';
 
 const GardenWorld = () => {
-  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation, addDrawing, deleteDrawing, deleteAllDrawings } = useGame();
+  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation, addDrawing, deleteDrawing, deleteAllDrawings, leaveRoom } = useGame();
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -521,7 +521,7 @@ const GardenWorld = () => {
       )}
 
       {roomId && (
-        <button className="change-room-btn" onClick={() => setShowRoomModal(true)}>
+        <button className="change-room-btn" onClick={() => leaveRoom()}>
           🔄
         </button>
       )}
