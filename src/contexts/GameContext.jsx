@@ -298,6 +298,14 @@ export const GameProvider = ({ children }) => {
     await remove(ref(database, `rooms/${roomId}/drawings/${drawingId}`));
   };
 
+  const deleteAllDrawings = async (location) => {
+    if (!userName || !roomId) return;
+    const filteredDrawings = drawings.filter(d => d.location === location);
+    for (const drawing of filteredDrawings) {
+      await remove(ref(database, `rooms/${roomId}/drawings/${drawing.id}`));
+    }
+  };
+
   const value = {
     user: userName,
     roomId,
@@ -320,6 +328,7 @@ export const GameProvider = ({ children }) => {
     changeLocation,
     addDrawing,
     deleteDrawing,
+    deleteAllDrawings,
     setUsername: handleSetUsername
   };
 

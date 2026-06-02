@@ -6,7 +6,7 @@ import Character from './Character';
 import './GardenWorld.css';
 
 const GardenWorld = () => {
-  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation, addDrawing, deleteDrawing } = useGame();
+  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation, addDrawing, deleteDrawing, deleteAllDrawings } = useGame();
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -21,6 +21,7 @@ const GardenWorld = () => {
   const [selectedFlower, setSelectedFlower] = useState(null);
   const [pressedButton, setPressedButton] = useState(null);
   const [wateringFlower, setWateringFlower] = useState(null);
+  const [erasingTimer, setErasingTimer] = useState(null);
   const worldRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -123,6 +124,26 @@ const GardenWorld = () => {
 
   const handleWorldClick = (e) => {
     if (!worldRef.current) return;
+
+    // Verificar si el clic está cerca de botones o menús
+    const controlPanel = document.querySelector('.control-panel');
+    const chatPanel = document.querySelector('.chat-panel');
+    const emojiPicker = document.querySelector('.emoji-picker');
+    const flowerMenu = document.querySelector('.flower-menu');
+    const backgroundMenu = document.querySelector('.background-menu');
+    const accessoryMenu = document.querySelector('.accessory-menu');
+    const flowerActionMenu = document.querySelector('.flower-action-menu');
+
+    const elements = [controlPanel, chatPanel, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu].filter(Boolean);
+
+    for (const element of elements) {
+      const rect = element.getBoundingClientRect();
+      const margin = 20; // margen de 20px
+      if (e.clientX >= rect.left - margin && e.clientX <= rect.right + margin &&
+          e.clientY >= rect.top - margin && e.clientY <= rect.bottom + margin) {
+        return;
+      }
+    }
 
     const rect = worldRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -233,11 +254,31 @@ const GardenWorld = () => {
   const handleRightClick = (e) => {
     e.preventDefault();
     if (!worldRef.current) return;
-    
+
+    // Verificar si el clic está cerca de botones o menús
+    const controlPanel = document.querySelector('.control-panel');
+    const chatPanel = document.querySelector('.chat-panel');
+    const emojiPicker = document.querySelector('.emoji-picker');
+    const flowerMenu = document.querySelector('.flower-menu');
+    const backgroundMenu = document.querySelector('.background-menu');
+    const accessoryMenu = document.querySelector('.accessory-menu');
+    const flowerActionMenu = document.querySelector('.flower-action-menu');
+
+    const elements = [controlPanel, chatPanel, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu].filter(Boolean);
+
+    for (const element of elements) {
+      const rect = element.getBoundingClientRect();
+      const margin = 20; // margen de 20px
+      if (e.clientX >= rect.left - margin && e.clientX <= rect.right + margin &&
+          e.clientY >= rect.top - margin && e.clientY <= rect.bottom + margin) {
+        return;
+      }
+    }
+
     const rect = worldRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     setPlantingPosition({ x, y });
     setShowFlowerMenu(true);
   };
@@ -325,6 +366,26 @@ const GardenWorld = () => {
 
     const startDrawing = (e) => {
       if (!isDrawing) return;
+      // Verificar si el clic está cerca de botones o menús
+      const controlPanel = document.querySelector('.control-panel');
+      const chatPanel = document.querySelector('.chat-panel');
+      const emojiPicker = document.querySelector('.emoji-picker');
+      const flowerMenu = document.querySelector('.flower-menu');
+      const backgroundMenu = document.querySelector('.background-menu');
+      const accessoryMenu = document.querySelector('.accessory-menu');
+      const flowerActionMenu = document.querySelector('.flower-action-menu');
+
+      const elements = [controlPanel, chatPanel, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu].filter(Boolean);
+
+      for (const element of elements) {
+        const rect = element.getBoundingClientRect();
+        const margin = 20; // margen de 20px
+        if (e.clientX >= rect.left - margin && e.clientX <= rect.right + margin &&
+            e.clientY >= rect.top - margin && e.clientY <= rect.bottom + margin) {
+          return;
+        }
+      }
+
       drawing = true;
       [lastX, lastY] = [e.clientX, e.clientY];
       currentPoints = [{ x: e.clientX, y: e.clientY }];
@@ -558,6 +619,36 @@ const GardenWorld = () => {
           onClick={() => {
             setIsErasing(!isErasing);
             setIsDrawing(false);
+          }}
+          onMouseDown={() => {
+            const timer = setTimeout(() => {
+              deleteAllDrawings(currentLocation);
+            }, 1000);
+            setErasingTimer(timer);
+          }}
+          onMouseUp={() => {
+            if (erasingTimer) {
+              clearTimeout(erasingTimer);
+              setErasingTimer(null);
+            }
+          }}
+          onMouseLeave={() => {
+            if (erasingTimer) {
+              clearTimeout(erasingTimer);
+              setErasingTimer(null);
+            }
+          }}
+          onTouchStart={() => {
+            const timer = setTimeout(() => {
+              deleteAllDrawings(currentLocation);
+            }, 1000);
+            setErasingTimer(timer);
+          }}
+          onTouchEnd={() => {
+            if (erasingTimer) {
+              clearTimeout(erasingTimer);
+              setErasingTimer(null);
+            }
           }}
         >
           ❌
