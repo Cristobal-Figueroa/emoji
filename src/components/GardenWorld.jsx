@@ -20,6 +20,7 @@ const GardenWorld = () => {
   const [isErasing, setIsErasing] = useState(false);
   const [selectedFlower, setSelectedFlower] = useState(null);
   const [pressedButton, setPressedButton] = useState(null);
+  const [wateringFlower, setWateringFlower] = useState(null);
   const worldRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -351,38 +352,37 @@ const GardenWorld = () => {
       currentPoints = [];
     };
 
-    // Capturar eventos del window solo cuando está en modo dibujo
-    if (isDrawing) {
-      window.addEventListener('mousedown', startDrawing);
-      window.addEventListener('mousemove', draw);
-      window.addEventListener('mouseup', stopDrawing);
+    // Capturar eventos del canvas solo cuando está en modo dibujo
+    const touchStartHandler = (e) => {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      startDrawing({ clientX: touch.clientX, clientY: touch.clientY });
+    };
+    const touchMoveHandler = (e) => {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      draw({ clientX: touch.clientX, clientY: touch.clientY });
+    };
 
-      // Touch events para móviles
-      window.addEventListener('touchstart', (e) => {
-        if (!isDrawing) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        startDrawing({ clientX: touch.clientX, clientY: touch.clientY });
-      });
-      window.addEventListener('touchmove', (e) => {
-        if (!isDrawing) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        draw({ clientX: touch.clientX, clientY: touch.clientY });
-      });
-      window.addEventListener('touchend', stopDrawing);
+    if (isDrawing) {
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('touchstart', touchStartHandler, { passive: false });
+      canvas.addEventListener('touchmove', touchMoveHandler, { passive: false });
+      canvas.addEventListener('touchend', stopDrawing);
     }
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      if (isDrawing) {
-        window.removeEventListener('mousedown', startDrawing);
-        window.removeEventListener('mousemove', draw);
-        window.removeEventListener('mouseup', stopDrawing);
-        window.removeEventListener('touchstart', startDrawing);
-        window.removeEventListener('touchmove', draw);
-        window.removeEventListener('touchend', stopDrawing);
-      }
+      canvas.removeEventListener('mousedown', startDrawing);
+      canvas.removeEventListener('mousemove', draw);
+      canvas.removeEventListener('mouseup', stopDrawing);
+      canvas.removeEventListener('touchstart', touchStartHandler);
+      canvas.removeEventListener('touchmove', touchMoveHandler);
+      canvas.removeEventListener('touchend', stopDrawing);
     };
   }, [isDrawing, drawings, currentLocation, addDrawing]);
 
@@ -474,7 +474,7 @@ const GardenWorld = () => {
               left: 0,
               width: '100%',
               height: '100%',
-              pointerEvents: 'none',
+              pointerEvents: isDrawing ? 'auto' : 'none',
               zIndex: 5
             }}
           />
@@ -493,7 +493,7 @@ const GardenWorld = () => {
         {flowers.map(flower => (
           <div
             key={flower.id}
-            className="garden-flower"
+            className={`garden-flower ${wateringFlower === flower.id ? 'watering' : ''}`}
             style={{
               left: `${flower.x}%`,
               top: `${flower.y}%`
@@ -553,14 +553,14 @@ const GardenWorld = () => {
         >
           ✏️
         </button>
-        <button 
+        <button
           className={`control-btn clear-btn ${isErasing ? 'active' : ''}`}
           onClick={() => {
             setIsErasing(!isErasing);
             setIsDrawing(false);
           }}
         >
-          🧹
+          ❌
         </button>
         <button 
           className="control-btn accessory-btn"
@@ -727,7 +727,9 @@ const GardenWorld = () => {
             <button
               className={`flower-action-option ${pressedButton === 'water' ? 'pressed' : ''}`}
               onClick={() => {
+                setWateringFlower(selectedFlower.id);
                 waterFlower(selectedFlower.id);
+                setTimeout(() => setWateringFlower(null), 500);
               }}
               onMouseDown={() => setPressedButton('water')}
               onMouseUp={() => setPressedButton(null)}
@@ -750,7 +752,7 @@ const GardenWorld = () => {
               onTouchStart={() => setPressedButton('remove')}
               onTouchEnd={() => setPressedButton(null)}
             >
-              <span className="flower-action-option-emoji">🗑️</span>
+              <span className="flower-action-option-emoji">❌</span>
               <span className="flower-action-option-name">Quitar</span>
             </button>
           </div>

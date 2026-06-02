@@ -246,11 +246,11 @@ export const GameProvider = ({ children }) => {
     const flower = flowers.find(f => f.id === flowerId);
     if (!flower) return;
 
-    const newWater = Math.min(100, flower.water + 25);
+    const newWater = Math.min(100, flower.water + 10);
     let newStage = flower.stage;
 
     // La flor crece si tiene suficiente agua
-    if (newWater >= 80 && flower.stage < 3) {
+    if (newWater >= 100 && flower.stage < 3) {
       newStage = flower.stage + 1;
     }
 
