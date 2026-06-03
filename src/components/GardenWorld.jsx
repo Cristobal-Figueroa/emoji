@@ -6,7 +6,7 @@ import Character from './Character';
 import './GardenWorld.css';
 
 const GardenWorld = () => {
-  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation, addDrawing, deleteDrawing, deleteAllDrawings, leaveRoom, setUsername } = useGame();
+  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeCharacterType, changeLocation, addDrawing, deleteDrawing, deleteAllDrawings, leaveRoom, setUsername } = useGame();
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -17,6 +17,7 @@ const GardenWorld = () => {
   const [showAccessoryMenu, setShowAccessoryMenu] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [nameInput, setNameInput] = useState('');
+  const [showCharacterMenu, setShowCharacterMenu] = useState(false);
   const [plantingPosition, setPlantingPosition] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
@@ -146,11 +147,12 @@ const GardenWorld = () => {
     const flowerMenu = document.querySelector('.flower-menu');
     const backgroundMenu = document.querySelector('.background-menu');
     const accessoryMenu = document.querySelector('.accessory-menu');
+    const characterMenu = document.querySelector('.character-menu');
     const flowerActionMenu = document.querySelector('.flower-action-menu');
     const changeRoomBtn = document.querySelector('.change-room-btn');
     const sendBtn = document.querySelector('.send-btn');
 
-    const elements = [controlPanel, chatPanelBody, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu, changeRoomBtn, sendBtn].filter(Boolean);
+    const elements = [controlPanel, chatPanelBody, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, characterMenu, flowerActionMenu, changeRoomBtn, sendBtn].filter(Boolean);
 
     for (const element of elements) {
       const rect = element.getBoundingClientRect();
@@ -278,11 +280,12 @@ const GardenWorld = () => {
     const flowerMenu = document.querySelector('.flower-menu');
     const backgroundMenu = document.querySelector('.background-menu');
     const accessoryMenu = document.querySelector('.accessory-menu');
+    const characterMenu = document.querySelector('.character-menu');
     const flowerActionMenu = document.querySelector('.flower-action-menu');
     const changeRoomBtn = document.querySelector('.change-room-btn');
     const sendBtn = document.querySelector('.send-btn');
 
-    const elements = [controlPanel, chatPanelBody, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, flowerActionMenu, changeRoomBtn, sendBtn].filter(Boolean);
+    const elements = [controlPanel, chatPanelBody, emojiPicker, flowerMenu, backgroundMenu, accessoryMenu, characterMenu, flowerActionMenu, changeRoomBtn, sendBtn].filter(Boolean);
 
     for (const element of elements) {
       const rect = element.getBoundingClientRect();
@@ -336,6 +339,7 @@ const GardenWorld = () => {
     setShowFlowerMenu(false);
     setShowBackgroundMenu(false);
     setShowAccessoryMenu(false);
+    setShowCharacterMenu(false);
     setSelectedFlower(null);
   };
 
@@ -477,6 +481,7 @@ const GardenWorld = () => {
                           e.target.closest('.flower-menu') ||
                           e.target.closest('.background-menu') ||
                           e.target.closest('.accessory-menu') ||
+                          e.target.closest('.character-menu') ||
                           e.target.closest('.garden-flower') ||
                           e.target.closest('.chat-panel-body') ||
                           e.target.closest('.change-room-btn') ||
@@ -730,6 +735,12 @@ const GardenWorld = () => {
         >
           {myPlayer.emoji}
         </button>
+        <button 
+          className="control-btn character-btn"
+          onClick={() => openMenu(setShowCharacterMenu)}
+        >
+          👤
+        </button>
       </div>
 
       <div className="locations">
@@ -784,6 +795,37 @@ const GardenWorld = () => {
                 {emoji}
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {showCharacterMenu && (
+        <div className="character-menu">
+          <div className="character-menu-header">
+            <h3>👤 Tu Personaje</h3>
+            <button className="close-btn" onClick={() => setShowCharacterMenu(false)}>✕</button>
+          </div>
+          <div className="character-options">
+            <button
+              className="character-option"
+              onClick={() => {
+                changeCharacterType('boy');
+                setShowCharacterMenu(false);
+              }}
+            >
+              <img src="/textures/boy.png" alt="Boy" className="character-preview" />
+              <span>Boy</span>
+            </button>
+            <button
+              className="character-option"
+              onClick={() => {
+                changeCharacterType('girl');
+                setShowCharacterMenu(false);
+              }}
+            >
+              <img src="/textures/girl.png" alt="Girl" className="character-preview" />
+              <span>Girl</span>
+            </button>
           </div>
         </div>
       )}

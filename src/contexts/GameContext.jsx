@@ -26,7 +26,8 @@ export const GameProvider = ({ children }) => {
     y: 50,
     message: '',
     messageTime: null,
-    accessory: null
+    accessory: null,
+    characterType: null
   });
   const [allFlowers, setAllFlowers] = useState([]);
   const [drawings, setDrawings] = useState([]);
@@ -44,14 +45,18 @@ export const GameProvider = ({ children }) => {
       await remove(oldPlayerRef);
     }
 
-    // Cargar emoji y accesorio guardados en localStorage como respaldo
+    // Cargar emoji, accesorio y characterType guardados en localStorage como respaldo
     const savedEmoji = localStorage.getItem(`cozyEmoji_${name}`);
     const savedAccessory = localStorage.getItem(`cozyAccessory_${name}`);
+    const savedCharacter = localStorage.getItem(`cozyCharacter_${name}`);
     if (savedEmoji) {
       setMyPlayer(prev => ({ ...prev, emoji: savedEmoji }));
     }
     if (savedAccessory) {
       setMyPlayer(prev => ({ ...prev, accessory: savedAccessory }));
+    }
+    if (savedCharacter) {
+      setMyPlayer(prev => ({ ...prev, characterType: savedCharacter }));
     }
   };
 
@@ -134,12 +139,13 @@ export const GameProvider = ({ children }) => {
       const data = snapshot.val();
       if (data) {
         setPlayers(data);
-        // Actualizar emoji y accesorio del jugador local desde la base de datos solo si existen
+        // Actualizar emoji, accesorio y characterType del jugador local desde la base de datos solo si existen
         if (data[userName]) {
           setMyPlayer(prev => ({
             ...prev,
             emoji: data[userName].emoji || prev.emoji,
-            accessory: data[userName].accessory || prev.accessory
+            accessory: data[userName].accessory || prev.accessory,
+            characterType: data[userName].characterType || prev.characterType
           }));
         }
       } else {
@@ -346,6 +352,18 @@ export const GameProvider = ({ children }) => {
     });
   };
 
+  const changeCharacterType = async (characterType) => {
+    if (!userName || !roomId) return;
+
+    setMyPlayer(prev => ({ ...prev, characterType }));
+    localStorage.setItem(`cozyCharacter_${userName}`, characterType);
+
+    await update(ref(database, `rooms/${roomId}/players/${userName}`), {
+      characterType,
+      location: currentLocation
+    });
+  };
+
   const addDrawing = async (points) => {
     if (!userName || !roomId) return;
 
@@ -391,6 +409,7 @@ export const GameProvider = ({ children }) => {
     waterFlower,
     changeBackground,
     changeAccessory,
+    changeCharacterType,
     changeLocation,
     addDrawing,
     deleteDrawing,
