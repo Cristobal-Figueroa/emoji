@@ -6,7 +6,7 @@ import Character from './Character';
 import './GardenWorld.css';
 
 const GardenWorld = () => {
-  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation, addDrawing, deleteDrawing, deleteAllDrawings, leaveRoom } = useGame();
+  const { user, roomId, players, flowers, drawings, background, currentLocation, myPlayer, updatePosition, sendMessage, changeEmoji, createRoom, joinRoom, plantFlower, waterFlower, changeBackground, changeAccessory, changeLocation, addDrawing, deleteDrawing, deleteAllDrawings, leaveRoom, setUsername } = useGame();
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -15,6 +15,8 @@ const GardenWorld = () => {
   const [showFlowerMenu, setShowFlowerMenu] = useState(false);
   const [showBackgroundMenu, setShowBackgroundMenu] = useState(false);
   const [showAccessoryMenu, setShowAccessoryMenu] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [nameInput, setNameInput] = useState('');
   const [plantingPosition, setPlantingPosition] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
@@ -535,6 +537,39 @@ const GardenWorld = () => {
         <button className="change-room-btn" onClick={() => leaveRoom()}>
           🔄
         </button>
+      )}
+
+      <button className="change-name-btn" onClick={() => setShowNameModal(true)}>
+        ✏️
+      </button>
+
+      {showNameModal && (
+        <div className="name-modal">
+          <div className="name-modal-content">
+            <h2>Cambiar Nombre</h2>
+            <input
+              type="text"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder="Nuevo nombre"
+              className="name-input"
+            />
+            <div className="name-modal-buttons">
+              <button className="name-btn cancel" onClick={() => setShowNameModal(false)}>
+                Cancelar
+              </button>
+              <button className="name-btn confirm" onClick={() => {
+                if (nameInput.trim()) {
+                  setUsername(nameInput.trim());
+                  setShowNameModal(false);
+                  setNameInput('');
+                }
+              }}>
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div
