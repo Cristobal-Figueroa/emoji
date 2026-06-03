@@ -55,33 +55,28 @@ const GardenWorld = () => {
   ];
 
   const backgrounds = [
-    { 
-      id: 'meadow', 
-      name: '🌿 Prado', 
+    {
+      id: 'meadow',
+      name: '🌿 Prado',
       gradient: 'linear-gradient(180deg, #87CEEB 0%, #98FB98 30%, #32CD32 60%, #228B22 100%)',
       pattern: 'meadow'
     },
-    { 
-      id: 'beach', 
-      name: '🏖️ Playa', 
+    {
+      id: 'beach',
+      name: '🏖️ Playa',
       gradient: 'linear-gradient(180deg, #87CEEB 0%, #FFD700 40%, #F4A460 70%, #DEB887 100%)',
       pattern: 'beach'
     },
-    { 
-      id: 'forest', 
-      name: '🌲 Bosque', 
-      gradient: 'linear-gradient(180deg, #2E8B57 0%, #228B22 40%, #006400 70%, #004d00 100%)',
-      pattern: 'forest'
+    {
+      id: 'forest',
+      name: '🌲 Bosque',
+      image: '/textures/grass-night.png',
+      pattern: 'forest',
+      gradient: 'transparent'
     },
-    { 
-      id: 'mountain', 
-      name: '⛰️ Montaña', 
-      gradient: 'linear-gradient(180deg, #87CEEB 0%, #B0C4DE 30%, #A9A9A9 50%, #696969 80%, #2F4F4F 100%)',
-      pattern: 'mountain'
-    },
-    { 
-      id: 'sunset', 
-      name: '🌅 Atardecer', 
+    {
+      id: 'sunset',
+      name: '🌅 Atardecer',
       gradient: 'linear-gradient(180deg, #FF6B6B 0%, #FFD93D 30%, #FF8C00 50%, #FF4500 80%, #8B0000 100%)',
       pattern: 'sunset'
     },
@@ -125,21 +120,12 @@ const GardenWorld = () => {
     { id: 'love9', name: '💋 Beso', emoji: '💋' },
     { id: 'love10', name: '❣️ Exclama', emoji: '❣️' },
     { id: 'love11', name: '💔 Roto', emoji: '💔' },
-    { id: 'love12', name: '🧡 Naranja', emoji: '🧡' },
-    { id: 'love13', name: '💛 Amarillo', emoji: '💛' },
-    { id: 'love14', name: '💚 Verde', emoji: '💚' },
-    { id: 'love15', name: '💙 Azul', emoji: '💙' },
-    { id: 'love16', name: '💜 Morado', emoji: '💜' },
-    { id: 'love17', name: '🤎 Café', emoji: '🤎' },
-    { id: 'love18', name: '🖤 Negro', emoji: '🖤' },
-    { id: 'love19', name: '🤍 Blanco', emoji: '🤍' },
     { id: 'wings', name: '👼 Alas', emoji: '👼' },
     { id: 'halo', name: '😇 Halo', emoji: '😇' },
     { id: 'mask', name: '🎭 Máscara', emoji: '🎭' },
     { id: 'tiara', name: '👸 Tiara', emoji: '👸' },
     { id: 'balloon', name: '🎈 Globo', emoji: '🎈' },
-    { id: 'umbrella', name: '☂️ Paraguas', emoji: '☂️' },
-    { id: 'magic', name: '🪄 Varita', emoji: '🪄' }
+    { id: 'umbrella', name: '☂️ Paraguas', emoji: '☂️' }
   ];
 
   const getFlowerEmoji = (type, stage) => {
@@ -557,11 +543,13 @@ const GardenWorld = () => {
         onClick={handleWorldClick}
         onContextMenu={handleRightClick}
       >
-        <div 
+        <div
           className="garden-background"
           data-pattern={backgrounds.find(bg => bg.id === background)?.pattern || 'meadow'}
-          style={{ 
-            background: backgrounds.find(bg => bg.id === background)?.gradient || backgrounds[0].gradient
+          style={{
+            background: backgrounds.find(bg => bg.id === background)?.image
+              ? `url(${backgrounds.find(bg => bg.id === background)?.image}) center/cover no-repeat`
+              : backgrounds.find(bg => bg.id === background)?.gradient || backgrounds[0].gradient
           }}
         >
           <canvas
@@ -577,16 +565,18 @@ const GardenWorld = () => {
               zIndex: 5
             }}
           />
-          <div className="grass-pattern"></div>
-          <div className="decorations">
-            <span className="decoration flower1">🌸</span>
-            <span className="decoration flower2">🌻</span>
-            <span className="decoration flower3">🌷</span>
-            <span className="decoration tree1">🌳</span>
-            <span className="decoration tree2">🌲</span>
-            <span className="decoration bush1">🌿</span>
-            <span className="decoration bush2">🍀</span>
-          </div>
+          {background !== 'forest' && <div className="grass-pattern"></div>}
+          {background !== 'forest' && (
+            <div className="decorations">
+              <span className="decoration flower1">🌸</span>
+              <span className="decoration flower2">🌻</span>
+              <span className="decoration flower3">🌷</span>
+              <span className="decoration tree1">🌳</span>
+              <span className="decoration tree2">🌲</span>
+              <span className="decoration bush1">🌿</span>
+              <span className="decoration bush2">🍀</span>
+            </div>
+          )}
         </div>
 
         {flowers.map(flower => (
