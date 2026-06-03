@@ -79,8 +79,9 @@ const GardenWorld = () => {
     {
       id: 'sunset',
       name: '🌅 Atardecer',
-      gradient: 'linear-gradient(180deg, #FF6B6B 0%, #FFD93D 30%, #FF8C00 50%, #FF4500 80%, #8B0000 100%)',
-      pattern: 'sunset'
+      image: '/textures/grass-day.png',
+      pattern: 'sunset',
+      gradient: 'transparent'
     },
     { 
       id: 'night', 
@@ -301,6 +302,7 @@ const GardenWorld = () => {
   };
 
   const handlePlantFlower = (type) => {
+    console.log('handlePlantFlower llamado con type:', type, 'plantingPosition:', plantingPosition);
     if (plantingPosition) {
       plantFlower(plantingPosition.x, plantingPosition.y, type);
       setShowFlowerMenu(false);
@@ -600,8 +602,8 @@ const GardenWorld = () => {
               zIndex: 5
             }}
           />
-          {background !== 'forest' && <div className="grass-pattern"></div>}
-          {background !== 'forest' && (
+          {background !== 'forest' && background !== 'sunset' && <div className="grass-pattern"></div>}
+          {background !== 'forest' && background !== 'sunset' && (
             <div className="decorations">
               <span className="decoration flower1">🌸</span>
               <span className="decoration flower2">🌻</span>

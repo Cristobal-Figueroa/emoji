@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { database } from '../firebase/config';
-import { ref, set, onValue, update, push, remove } from 'firebase/database';
+import { ref, set, onValue, update, push, remove, onDisconnect } from 'firebase/database';
 
 const GameContext = createContext();
 
@@ -32,10 +32,17 @@ export const GameProvider = ({ children }) => {
   const [drawings, setDrawings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const handleSetUsername = (name) => {
+  const handleSetUsername = async (name) => {
+    const oldName = userName;
     setUserName(name);
     setMyPlayer(prev => ({ ...prev, id: name }));
     localStorage.setItem('cozyUserName', name);
+
+    // Si estaba en una sala y cambió de nombre, eliminar el registro anterior
+    if (oldName && roomId && oldName !== name) {
+      const oldPlayerRef = ref(database, `rooms/${roomId}/players/${oldName}`);
+      await remove(oldPlayerRef);
+    }
 
     // Cargar emoji y accesorio guardados en localStorage como respaldo
     const savedEmoji = localStorage.getItem(`cozyEmoji_${name}`);
@@ -110,6 +117,18 @@ export const GameProvider = ({ children }) => {
     setRoomId(roomIdToJoin);
 
     const playersRef = ref(database, `rooms/${roomIdToJoin}/players`);
+    const myPlayerRef = ref(database, `rooms/${roomIdToJoin}/players/${userName}`);
+
+    // Establecer presencia online
+    await set(myPlayerRef, {
+      ...myPlayer,
+      id: userName,
+      lastSeen: Date.now(),
+      online: true
+    });
+
+    // Configurar onDisconnect para eliminar al jugador cuando se desconecte
+    onDisconnect(myPlayerRef).remove();
 
     const unsubscribePlayers = onValue(playersRef, (snapshot) => {
       const data = snapshot.val();

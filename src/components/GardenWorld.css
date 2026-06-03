@@ -61,11 +61,7 @@
 }
 
 .garden-background[data-pattern="sunset"]::before {
-  background-image: 
-    radial-gradient(circle at 25% 75%, #FF4500 3px, transparent 3px),
-    radial-gradient(circle at 75% 65%, #FF8C00 4px, transparent 4px),
-    radial-gradient(circle at 50% 85%, #FF6B6B 2px, transparent 2px);
-  background-size: 90px 90px;
+  display: none !important;
 }
 
 .garden-background[data-pattern="night"]::before {
